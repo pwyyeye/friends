@@ -1,0 +1,115 @@
+/* 全局样式：克制、朴素、中性色为主，避免渐变/毛玻璃/霓虹 */
+:root {
+  /* 主色：深蓝灰，沉稳不张扬 */
+  --color-primary: #1f3a5f;
+  --color-primary-hover: #294a73;
+  --color-primary-active: #182e4d;
+
+  /* 中性色 */
+  --color-text-primary: #1f2937;
+  --color-text-regular: #374151;
+  --color-text-secondary: #6b7280;
+  --color-text-placeholder: #9ca3af;
+  --color-text-disabled: #d1d5db;
+
+  --color-bg-page: #f5f6f8;
+  --color-bg-card: #ffffff;
+  --color-bg-hover: #f3f4f6;
+
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  /* 功能色（饱和度低） */
+  --color-success: #2f7d4f;
+  --color-warning: #b07d2f;
+  --color-danger: #b34a3f;
+  --color-info: #4a5b73;
+
+  /* 间距 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* 字号 */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 22px;
+
+  /* 圆角（统一克制） */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+}
+
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { color: var(--color-primary-hover); }
+
+/* Element Plus 主题覆盖（朴素风：去阴影、去圆角、平面化） */
+.el-button { border-radius: var(--radius-sm); font-weight: normal; }
+.el-card { border-radius: var(--radius-sm); box-shadow: none; border: 1px solid var(--color-border); }
+.el-card__header { padding: var(--space-md); border-bottom: 1px solid var(--color-border-light); font-weight: 600; }
+.el-input__wrapper, .el-textarea__inner, .el-select__wrapper {
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 0 0 1px var(--color-border) inset !important;
+}
+.el-input__wrapper:hover, .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px var(--color-primary) inset !important;
+}
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--color-primary) inset !important;
+}
+.el-table { --el-table-border-color: var(--color-border-light); border-radius: 0; }
+.el-table th.el-table__cell {
+  background: #fafbfc;
+  color: var(--color-text-regular);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+.el-table td.el-table__cell { font-size: var(--font-size-sm); }
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+  background: var(--color-bg-hover);
+}
+.el-pagination { --el-pagination-button-bg-color: #ffffff; }
+.el-tag { border-radius: var(--radius-sm); }
+.el-menu { border-right: none; }
+
+/* 主按钮（克制蓝灰） */
+.el-button--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.el-button--primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.el-button--primary:active {
+  background: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* 工具类 */
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.muted { color: var(--color-text-secondary); }
+.mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.text-sm { font-size: var(--font-size-sm); }
+.text-lg { font-size: var(--font-size-lg); }

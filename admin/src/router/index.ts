@@ -1,0 +1,36 @@
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
+
+const routes: RouteRecordRaw[] = [
+  { path: '/login', component: () => import('@/views/login/LoginPage.vue'), meta: { public: true } },
+  {
+    path: '/',
+    component: () => import('@/layouts/MainLayout.vue'),
+    redirect: '/dashboard',
+    children: [
+      { path: 'dashboard', component: () => import('@/views/dashboard/DashboardPage.vue'), meta: { title: '看板' } },
+      { path: 'users', component: () => import('@/views/users/UsersPage.vue'), meta: { title: '用户管理' } },
+      { path: 'referrers', component: () => import('@/views/referrers/ReferrersPage.vue'), meta: { title: '介绍人管理' } },
+      { path: 'profiles', component: () => import('@/views/profiles/ProfilesPage.vue'), meta: { title: '资料审核' } },
+      { path: 'matches', component: () => import('@/views/matches/MatchesPage.vue'), meta: { title: '牵线记录' } },
+      { path: 'audit', component: () => import('@/views/audit/AuditPage.vue'), meta: { title: '操作日志' } },
+    ],
+  },
+  { path: '/:pathMatch(.*)*', redirect: '/' },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
+
+router.beforeEach((to, _from, next) => {
+  const auth = useAuthStore();
+  if (!to.meta.public && !auth.token) {
+    next('/login');
+  } else {
+    next();
+  }
+});
+
+export default router;

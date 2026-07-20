@@ -1,0 +1,276 @@
+// Prisma Schema - Friends 牵线交友平台
+// 详细字段说明见 docs/README.md 第六章
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============== 字典表 ==============
+
+model City {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @unique @db.VarChar(50)
+  pinyin    String?  @db.VarChar(50)
+  province  String?  @db.VarChar(50)
+  level     Int      @default(4) // 1一线 2新一线 3二线 4其他
+  status    Int      @default(1) // 1启用 0禁用
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]            @relation("UserCity")
+  targetRequirements UserRequirement[]
+
+  @@map("cities")
+}
+
+model Occupation {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @unique @db.VarChar(50)
+  category  String?  @db.VarChar(50)
+  status    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[] @relation("UserOccupation")
+
+  @@map("occupations")
+}
+
+model InterestTag {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @unique @db.VarChar(30)
+  category  String?  @db.VarChar(30)
+  sort      Int      @default(0)
+  status    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userInterests UserInterest[]
+
+  @@map("interest_tags")
+}
+
+// ============== 用户表 ==============
+
+model User {
+  id                  BigInt    @id @default(autoincrement())
+  phone               String    @unique @db.VarChar(20)
+  passwordHash        String    @db.VarChar(255)
+  nickname            String?   @db.VarChar(50)
+  gender              Int?      // 1男 2女
+  age                 Int?
+  cityId              BigInt?
+  height              Int?
+  occupationId        BigInt?
+  occupationCustom    String?   @db.VarChar(100)
+  avatarOssKey        String?   @db.VarChar(255)
+  inviteCode          String?   @unique @db.VarChar(8)
+  referrerId          BigInt?
+  profileStatus       Int       @default(0) // 0未提交 1待审核 2已通过 3已驳回
+  status              Int       @default(1) // 1启用 0禁用
+  cancelStatus        Int       @default(0) // 0正常 1注销中 2已注销
+  cancelAt            DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // 关系
+  city              City?             @relation("UserCity", fields: [cityId], references: [id])
+  occupation        Occupation?       @relation("UserOccupation", fields: [occupationId], references: [id])
+  referrer          User?             @relation("Referrer", fields: [referrerId], references: [id])
+  invitees          User[]            @relation("Referrer")
+
+  interests         UserInterest[]
+  customInterests   UserCustomInterest[]
+  requirement       UserRequirement?
+  profilesPending   UserProfilePending[]
+  matchesAsA        MatchRecord[]     @relation("MatchUserA")
+  matchesAsB        MatchRecord[]     @relation("MatchUserB")
+  matchesAsReferrer MatchRecord[]     @relation("MatchReferrer")
+  referrerHistory   ReferrerHistory[] @relation("ReferrerHistoryUser")
+  referredHistory   ReferrerHistory[] @relation("ReferrerHistoryNew")
+  uploadedFiles     UploadedFile[]
+  tokenBlacklist    TokenBlacklist[]
+
+  @@index([phone])
+  @@index([inviteCode])
+  @@index([referrerId])
+  @@index([status])
+  @@map("users")
+}
+
+model UserInterest {
+  id             BigInt @id @default(autoincrement())
+  userId         BigInt
+  interestTagId  BigInt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interestTag InterestTag @relation(fields: [interestTagId], references: [id])
+
+  @@unique([userId, interestTagId])
+  @@map("user_interests")
+}
+
+model UserCustomInterest {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt
+  tagText   String   @db.VarChar(50)
+  promoted  Int      @default(0) // 0未提升 1已提升为字典项
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_custom_interests")
+}
+
+model UserRequirement {
+  userId         BigInt  @id
+  targetGender   Int     @default(0) // 1男 2女 0不限
+  targetAgeMin   Int?
+  targetAgeMax   Int?
+  targetCityId   BigInt?
+  selfDesc       String? @db.Text
+
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetCity  City? @relation(fields: [targetCityId], references: [id])
+
+  @@map("user_requirements")
+}
+
+// ============== 资料审核池 ==============
+
+model UserProfilePending {
+  id            BigInt    @id @default(autoincrement())
+  userId        BigInt
+  payloadJson   Json
+  status        Int       @default(1) // 1pending 2approved 3rejected 4superseded
+  rejectReason  String?   @db.VarChar(500)
+  reviewedBy    BigInt?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin Admin? @relation(fields: [reviewedBy], references: [id])
+
+  @@index([userId, status])
+  @@index([status])
+  @@map("user_profiles_pending")
+}
+
+// ============== 牵线记录 ==============
+
+model MatchRecord {
+  id          BigInt   @id @default(autoincrement())
+  userAId     BigInt
+  userBId     BigInt
+  referrerId  BigInt
+  matchedAt   DateTime
+  note        String?  @db.Text
+  createdBy   BigInt
+  createdAt   DateTime @default(now())
+
+  userA     User  @relation("MatchUserA",     fields: [userAId],     references: [id])
+  userB     User  @relation("MatchUserB",     fields: [userBId],     references: [id])
+  referrer  User  @relation("MatchReferrer",  fields: [referrerId],  references: [id])
+  createdByAdmin Admin @relation(fields: [createdBy], references: [id])
+
+  @@index([referrerId])
+  @@index([matchedAt])
+  @@map("match_records")
+}
+
+// ============== 介绍人变更历史 ==============
+
+model ReferrerHistory {
+  id              BigInt   @id @default(autoincrement())
+  userId          BigInt
+  oldReferrerId   BigInt?
+  newReferrerId   BigInt
+  reason          String?  @db.VarChar(500)
+  operatedBy      BigInt
+  createdAt       DateTime @default(now())
+
+  user        User  @relation("ReferrerHistoryUser", fields: [userId], references: [id])
+  newReferrer User  @relation("ReferrerHistoryNew", fields: [newReferrerId], references: [id])
+  operatedByAdmin Admin @relation(fields: [operatedBy], references: [id])
+
+  @@index([userId])
+  @@map("referrer_history")
+}
+
+// ============== 管理员 ==============
+
+model Admin {
+  id            BigInt    @id @default(autoincrement())
+  username      String    @unique @db.VarChar(50)
+  passwordHash  String    @db.VarChar(255)
+  role          String    @db.VarChar(20) // super_admin | operator
+  status        Int       @default(1)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reviewedProfiles UserProfilePending[]
+  createdMatches   MatchRecord[]
+  auditLogs        AuditLog[]
+  transferOps      ReferrerHistory[]
+
+  @@map("admins")
+}
+
+// ============== 审计日志 ==============
+
+model AuditLog {
+  id          BigInt   @id @default(autoincrement())
+  adminId     BigInt
+  action      String   @db.VarChar(50)
+  targetType  String   @db.VarChar(30)
+  targetId    BigInt?
+  payloadJson Json?
+  createdAt   DateTime @default(now())
+
+  admin Admin? @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============== 上传文件记录 ==============
+
+model UploadedFile {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt
+  ossKey     String   @unique @db.VarChar(255)
+  url        String   @db.VarChar(500)
+  size       Int
+  mimeType   String   @db.VarChar(50)
+  purpose    String   @default("avatar") @db.VarChar(20)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("uploaded_files")
+}
+
+// ============== JWT 黑名单 ==============
+
+model TokenBlacklist {
+  jti       String   @id @db.VarChar(64)
+  userId    BigInt?
+  adminId   BigInt?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@index([expiresAt])
+  @@map("token_blacklist")
+}
