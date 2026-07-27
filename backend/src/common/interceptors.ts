@@ -19,6 +19,7 @@ interface RespBody<T = unknown> {
  * 全局响应拦截器：
  * 1. 自动注入 X-Request-Id（请求头不存在则生成）
  * 2. 统一包装响应为 { code, message, data, requestId }
+ * 3. 序列化前将 BigInt 转字符串，避免 JSON.stringify 抛错
  */
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
@@ -37,11 +38,30 @@ export class TransformInterceptor implements NestInterceptor {
         const body: RespBody = {
           code: 0,
           message: 'ok',
-          data: data ?? null,
+          data: normalizeBigInt(data) as any,
           requestId,
         };
         return body;
       }),
     );
   }
+}
+
+/**
+ * 把对象里的 BigInt 全部转成字符串。
+ * Express 默认 JSON.stringify 不支持 BigInt，统一在这里处理。
+ */
+function normalizeBigInt(value: unknown): unknown {
+  if (typeof value === 'bigint') return value.toString();
+  if (value === null || value === undefined) return value;
+  if (value instanceof Date) return value;
+  if (Array.isArray(value)) return value.map(normalizeBigInt);
+  if (typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = normalizeBigInt(v);
+    }
+    return out;
+  }
+  return value;
 }

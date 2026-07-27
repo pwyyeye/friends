@@ -72,6 +72,9 @@ const onSubmit = async () => {
       auth.setAuth(res.accessToken, res.admin);
       ElMessage.success('登录成功');
       router.push('/');
+    } catch (err) {
+      // 业务/HTTP 错误已被 request.ts 拦截器用 ElMessage 弹窗，这里只阻止 unhandled
+      console.error('admin login failed', err);
     } finally {
       loading.value = false;
     }

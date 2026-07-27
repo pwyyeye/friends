@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class RequirementDto {
   @ApiProperty({ example: 2, description: '1男 2女 0不限' })
@@ -63,11 +72,20 @@ export class SubmitProfileDto {
   @MaxLength(100)
   occupationCustom?: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({ description: '头像 OSS key（必填）' })
   @IsString()
   @MaxLength(255)
-  avatarOssKey?: string;
+  avatarOssKey!: string;
+
+  @ApiProperty({
+    example: ['lifestyle/1/202607/abc.jpg'],
+    description: '生活照 OSS key 列表（1-9 张）',
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(9)
+  @IsString({ each: true })
+  photoOssKeys!: string[];
 
   @ApiProperty({ example: [1, 2, 3], description: '兴趣标签 id 列表' })
   @IsArray()

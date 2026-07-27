@@ -25,10 +25,11 @@ export class RegisterDto {
   })
   password!: string;
 
-  @ApiProperty({ example: '123456', description: '介绍人 6 位邀请码' })
+  @ApiProperty({ required: false, example: '123456', description: '介绍人 6 位邀请码（选填）' })
+  @IsOptional()
   @IsString()
   @Matches(/^\d{6}$/, { message: '邀请码必须为 6 位数字' })
-  inviteCode!: string;
+  inviteCode?: string;
 
   @ApiProperty({ required: false, example: '小明' })
   @IsOptional()

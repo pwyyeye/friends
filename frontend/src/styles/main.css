@@ -1,112 +1,316 @@
-/* H5 端：克制朴素，主色深蓝灰，无渐变无毛玻璃 */
+/* ============================================================
+ * Friends · 牵线交友 · H5 主题
+ * 风格：暖色、衬线、克制层级，强调"温度 / 信赖 / 关系"
+ * 字体：英文 Playfair Display (serif title) + Inter (UI)
+ *       中文 Noto Serif SC (serif title) + Noto Sans SC (UI)
+ * ============================================================ */
+
+/* Google Fonts: 标题用 Playfair Display + Noto Serif SC，UI 用 Inter + Noto Sans SC */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap');
+
 :root {
-  --color-primary: #1f3a5f;
-  --color-primary-light: #294a73;
-  --color-primary-dark: #182e4d;
+  /* —— 颜色 · 品牌 ———————————————————————————————————— */
+  --color-primary:        #3a1028; /* 深酒红：主按钮、标题色 */
+  --color-primary-soft:   #5a2540;
+  --color-primary-deep:   #240915;
+  --color-accent:         #d97706; /* 暖橘：品牌辅色 / 强调点 */
+  --color-accent-soft:    #fcd9a4;
 
-  --color-text-primary: #1f2937;
-  --color-text-regular: #374151;
-  --color-text-secondary: #6b7280;
-  --color-text-placeholder: #9ca3af;
+  /* —— 颜色 · 中性 / 文本 ——————————————————————————————— */
+  --color-text-primary:   #1f1410;
+  --color-text-regular:   #4a3b30;
+  --color-text-secondary: #7c6a5d;
+  --color-text-muted:     #a99987;
 
-  --color-bg-page: #f5f6f8;
-  --color-bg-card: #ffffff;
-  --color-bg-section: #f9fafb;
+  /* —— 颜色 · 背景 ——————————————————————————————————————— */
+  --color-bg-page:    #fbf6ee; /* 全局暖米色背景 */
+  --color-bg-card:    #ffffff;
+  --color-bg-section: #f6efe2; /* 浅米色，小节底色 */
+  --color-bg-elev:    #fffaf0; /* 抬升的卡片背景 */
+  --color-bg-overlay: rgba(31, 20, 16, 0.45);
 
-  --color-border: #e5e7eb;
-  --color-border-light: #f3f4f6;
+  /* —— 颜色 · 边框 ——————————————————————————————————————— */
+  --color-border:        #e9dfca;
+  --color-border-light:  #f1e8d5;
+  --color-border-strong: #d8c8a8;
 
-  --color-success: #2f7d4f;
-  --color-warning: #b07d2f;
-  --color-danger: #b34a3f;
+  /* —— 颜色 · 语义 ——————————————————————————————————————— */
+  --color-success: #0f7a4a;
+  --color-warning: #b45309;
+  --color-danger:  #b91c1c;
 
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
+  /* —— 间距 ——————————————————————————————————————————————— */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
 
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
+  /* —— 字号 ——————————————————————————————————————————————— */
+  --font-size-xs:   12px;
+  --font-size-sm:   13px;
   --font-size-base: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-  --font-size-2xl: 22px;
+  --font-size-md:   15px;
+  --font-size-lg:   16px;
+  --font-size-xl:   18px;
+  --font-size-2xl:  22px;
+  --font-size-3xl:  28px;
+  --font-size-4xl:  36px;
+  --font-size-5xl:  48px;
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  /* —— 字体栈 ——————————————————————————————————————————————— */
+  --font-serif-en: 'Playfair Display', 'Noto Serif SC', Georgia, 'Times New Roman', serif;
+  --font-serif-cn: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-sans-en:  'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans-cn:  'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --safe-area-top: env(safe-area-inset-top);
+  /* —— 圆角 ——————————————————————————————————————————————— */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   18px;
+  --radius-xl:   24px;
+  --radius-pill: 999px;
+
+  /* —— 阴影（暖色低饱和） ————————————————————————————————— */
+  --shadow-xs: 0 1px 2px rgba(58, 16, 40, 0.04);
+  --shadow-sm: 0 2px 6px rgba(58, 16, 40, 0.06), 0 1px 2px rgba(58, 16, 40, 0.04);
+  --shadow-md: 0 8px 24px rgba(58, 16, 40, 0.08), 0 2px 6px rgba(58, 16, 40, 0.04);
+  --shadow-lg: 0 16px 40px rgba(58, 16, 40, 0.10), 0 4px 12px rgba(58, 16, 40, 0.05);
+
+  /* —— 安全区 ——————————————————————————————————————————————— */
+  --safe-area-top:    env(safe-area-inset-top);
   --safe-area-bottom: env(safe-area-inset-bottom);
+
+  /* —— Vant 主题覆盖（覆盖到 Vant CSS 变量） ———————————————— */
+  --van-primary-color:           var(--color-primary);
+  --van-button-primary-background: var(--color-primary);
+  --van-button-primary-border-color: var(--color-primary);
+  --van-button-border-radius:    var(--radius-md);
+  --van-button-default-height:   48px;
+  --van-button-large-height:     52px;
+  --van-cell-border-color:       var(--color-border-light);
+  --van-cell-vertical-padding:   14px;
+  --van-cell-horizontal-padding: var(--space-4);
+  --van-cell-background:         var(--color-bg-card);
+  --van-field-label-color:       var(--color-text-regular);
+  --van-field-input-text-color:  var(--color-text-primary);
+  --van-nav-bar-background:      var(--color-bg-page);
+  --van-nav-bar-title-text-color: var(--color-text-primary);
+  --van-nav-bar-icon-color:      var(--color-text-primary);
+  --van-nav-bar-text-color:      var(--color-text-primary);
+  --van-nav-bar-height:          48px;
+  --van-tag-primary-color:       var(--color-primary);
+  --van-tabbar-item-active-color: var(--color-primary);
+  --van-tabbar-item-text-color:  var(--color-text-secondary);
+  --van-tabbar-background:       transparent;
 }
 
+/* —— 全局 reset ————————————————————————————————————————————— */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #app { height: 100%; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-sans-cn), var(--font-sans-en);
   font-size: var(--font-size-base);
+  line-height: 1.55;
   color: var(--color-text-primary);
   background: var(--color-bg-page);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 a { color: var(--color-primary); text-decoration: none; }
 
+/* —— 通用工具类 ———————————————————————————————————————————— */
+.muted    { color: var(--color-text-secondary); }
+.text-sm  { font-size: var(--font-size-sm); }
+.text-md  { font-size: var(--font-size-md); }
+.text-lg  { font-size: var(--font-size-lg); }
+.mono     { font-family: var(--font-mono); }
+.serif    { font-family: var(--font-serif-cn), var(--font-serif-en); }
+.flex     { display: flex; }
+.flex-1   { flex: 1; }
+.flex-center {
+  display: flex; align-items: center; justify-content: center;
+}
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.text-center { text-align: center; }
+
+/* —— 页面级容器 ———————————————————————————————————————————— */
 .page {
   min-height: 100vh;
   background: var(--color-bg-page);
-  padding: var(--space-md);
-  padding-top: calc(var(--space-md) + var(--safe-area-top));
-  padding-bottom: calc(var(--space-xl) + var(--safe-area-bottom));
+  padding: var(--space-3);
+  padding-top: calc(var(--space-3) + var(--safe-area-top));
+  padding-bottom: calc(var(--space-7) + var(--safe-area-bottom));
 }
 
+/* —— 卡片：圆角、阴影、内边距 ————————————————————————————— */
 .card {
   background: var(--color-bg-card);
-  border-radius: var(--radius-md);
-  padding: var(--space-lg);
-  margin-bottom: var(--space-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
   border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+.card--elev {
+  background: var(--color-bg-elev);
+  box-shadow: var(--shadow-md);
+}
+.card--bare {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
 }
 
 .section-title {
-  font-size: var(--font-size-lg);
+  font-family: var(--font-serif-cn), var(--font-serif-en);
+  font-size: var(--font-size-xl);
   font-weight: 600;
-  margin: var(--space-xl) 0 var(--space-md);
+  margin: var(--space-6) 0 var(--space-3);
   color: var(--color-text-primary);
+  letter-spacing: 0.5px;
 }
-
 .section-title:first-child { margin-top: 0; }
-
-.muted { color: var(--color-text-secondary); }
-.text-sm { font-size: var(--font-size-sm); }
-.mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
-.flex { display: flex; }
-.flex-1 { flex: 1; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.gap-sm { gap: var(--space-sm); }
-.gap-md { gap: var(--space-md); }
-.text-center { text-align: center; }
-
-/* Vant 主题覆盖 */
-:root {
-  --van-primary-color: var(--color-primary);
-  --van-button-primary-background: var(--color-primary);
-  --van-button-primary-border-color: var(--color-primary);
-  --van-button-border-radius: var(--radius-sm);
-  --van-cell-border-color: var(--color-border-light);
-  --van-cell-vertical-padding: 12px;
-  --van-cell-horizontal-padding: var(--space-md);
-  --van-field-label-color: var(--color-text-regular);
-  --van-field-input-text-color: var(--color-text-primary);
-  --van-nav-bar-background: var(--color-primary);
-  --van-nav-bar-title-text-color: #fff;
-  --van-nav-bar-icon-color: #fff;
-  --van-nav-bar-text-color: #fff;
-  --van-tag-primary-color: var(--color-primary);
-  --van-tabbar-item-active-color: var(--color-primary);
+.section-title--sm {
+  font-size: var(--font-size-md);
+  margin: var(--space-5) 0 var(--space-3);
+  letter-spacing: 1px;
 }
 
-.van-button--primary { font-weight: 500; }
+/* —— Brand Mark / Logo ——————————————————————————————————— */
+.brand-mark {
+  font-family: var(--font-serif-en);
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--color-primary);
+}
+.brand-sub {
+  font-family: var(--font-serif-cn);
+  font-weight: 500;
+  letter-spacing: 4px;
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+}
 
+/* —— Vant 覆盖：按钮、单元格 ————————————————————————————— */
+.van-button--primary {
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.van-button--large.van-button--primary {
+  font-weight: 600;
+  letter-spacing: 2px;
+}
 .van-cell { font-size: var(--font-size-base); }
-.van-field__label { width: 5em; color: var(--color-text-regular); }
+.van-cell__title { font-weight: 500; }
+
+/* —— Vant NavBar：去掉强制深色，让 nav-bar 跟页面同色 ———— */
+.van-nav-bar { border-bottom: 1px solid var(--color-border-light); }
+
+/* —— Vant Field：让 label 区窄而优雅 ——————————————————————— */
+.van-field__label { width: 5.5em; color: var(--color-text-regular); }
+
+/* —— Vant Toast：fixed 定位 + 暖色调轻提示（避免硬黑底破坏品牌温度） —————— */
+.van-toast {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  max-width: 78%;
+  min-width: 120px;
+  background: var(--color-bg-elev);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 12px 18px;
+  font-size: var(--font-size-md);
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.van-toast__text {
+  white-space: nowrap;
+  margin-top: 0;
+}
+.van-toast.van-toast--top { top: 14%; }
+.van-toast.van-toast--bottom { top: auto; bottom: 18%; transform: translate(-50%, 0); }
+
+/* —— 失败提示：左侧加酒红警示条 —— */
+.van-toast.van-toast--fail {
+  background: linear-gradient(180deg, #fbe9d8 0%, #f6dfb6 100%);
+  border-color: #e6b888;
+  color: #6b3d05;
+}
+.van-toast.van-toast--fail::before {
+  content: '';
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
+  background: var(--color-danger);
+  flex: 0 0 auto;
+}
+.van-toast.van-toast--fail .van-toast__icon {
+  color: var(--color-danger);
+  font-size: 20px;
+}
+
+/* —— 成功提示：左侧加暖橘色勾 —— */
+.van-toast.van-toast--success {
+  background: linear-gradient(180deg, #e6f3eb 0%, #cfe8d8 100%);
+  border-color: #9bc6ad;
+  color: #0f5a36;
+}
+.van-toast.van-toast--success::before {
+  content: '';
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
+  background: var(--color-success);
+  flex: 0 0 auto;
+}
+.van-toast.van-toast--success .van-toast__icon {
+  color: var(--color-success);
+  font-size: 20px;
+}
+
+/* —— 文本模式（showToast 普通提示） —— */
+.van-toast--text {
+  min-width: 0;
+  padding: 10px 16px;
+  background: rgba(31, 20, 16, 0.78);
+  color: #fff;
+  border: none;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.van-toast--text::before { display: none; }
+
+/* —— 加载中：保留中性色 —— */
+.van-toast--loading {
+  background: var(--color-bg-elev);
+  color: var(--color-text-regular);
+}
+.van-toast--loading::before {
+  background: var(--color-primary);
+}
+
+/* —— Vant TabBar：透明，交给 PillTabBar 组件渲染 ————————————— */
+.van-tabbar { background: transparent; box-shadow: none; }
+.van-tabbar::after { display: none; }

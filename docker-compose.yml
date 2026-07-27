@@ -6,7 +6,7 @@ services:
     container_name: friends-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: fsl8888
       MYSQL_DATABASE: friends
       TZ: Asia/Shanghai
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
@@ -15,7 +15,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot123']
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-pfsl8888']
       interval: 10s
       timeout: 5s
       retries: 10

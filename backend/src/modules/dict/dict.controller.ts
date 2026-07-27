@@ -18,6 +18,7 @@ export class DictController {
       select: {
         id: true,
         name: true,
+        pinyin: true,
         province: true,
         level: true,
       },

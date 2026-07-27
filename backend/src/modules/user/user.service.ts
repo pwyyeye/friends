@@ -8,6 +8,20 @@ function maskPhone(phone: string | null | undefined): string | null {
   return phone.slice(0, 3) + '****' + phone.slice(-4);
 }
 
+function publicUrlFor(key: string | null | undefined): string | null {
+  if (!key) return null;
+  // 注意：必须与 upload.service 的 URL 规则保持一致
+  // mock 模式: http://localhost:<PORT>/api/v1/upload/mock-file/<key>
+  // aliyun  : <OSS_PUBLIC_BASE>/<key>
+  const provider = process.env.OSS_PROVIDER ?? 'aliyun';
+  if (provider === 'mock') {
+    const port = process.env.PORT ?? '3000';
+    return `http://localhost:${port}/api/v1/upload/mock-file/${key}`;
+  }
+  const base = process.env.OSS_PUBLIC_BASE ?? '';
+  return `${base}/${key}`;
+}
+
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
@@ -18,6 +32,7 @@ export class UserService {
       where: { id: userId },
       include: {
         referrer: { select: { id: true, nickname: true, inviteCode: true } },
+        photos: { orderBy: { sort: 'asc' } },
       },
     });
     if (!u) throw new BizException(BizCode.USER_NOT_FOUND);
@@ -26,7 +41,9 @@ export class UserService {
       phone: maskPhone(u.phone),
       nickname: u.nickname,
       inviteCode: u.inviteCode,
+      avatarUrl: publicUrlFor(u.avatarOssKey),
       avatarOssKey: u.avatarOssKey,
+      photos: u.photos.map((p) => ({ ossKey: p.ossKey, url: p.url })),
       profileStatus: u.profileStatus,
       referrer: u.referrer
         ? {
@@ -50,6 +67,7 @@ export class UserService {
         interests: { include: { interestTag: true } },
         customInterests: true,
         requirement: { include: { targetCity: true } },
+        photos: { orderBy: { sort: 'asc' } },
       },
     });
     if (!u) throw new BizException(BizCode.USER_NOT_FOUND);
@@ -63,7 +81,9 @@ export class UserService {
         ? { id: String(u.occupation.id), name: u.occupation.name }
         : null,
       occupationCustom: u.occupationCustom,
+      avatarUrl: publicUrlFor(u.avatarOssKey),
       avatarOssKey: u.avatarOssKey,
+      photos: u.photos.map((p) => ({ ossKey: p.ossKey, url: p.url })),
       interests: u.interests.map((i) => ({
         id: String(i.interestTag.id),
         name: i.interestTag.name,

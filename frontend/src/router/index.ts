@@ -10,7 +10,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
       { path: 'profile', component: () => import('@/views/profile/ProfilePage.vue'), meta: { title: '我的资料' } },
-      { path: 'invite', component: () => import('@/views/invite/InvitePage.vue'), meta: { title: '我的邀请' } },
       { path: 'me', component: () => import('@/views/me/MePage.vue'), meta: { title: '我的' } },
     ],
   },

@@ -4,11 +4,11 @@
 
 ## 0. 环境准备
 
-| 工具 | 版本 | 说明 |
-| --- | --- | --- |
-| Node.js | ≥ 18 | 后端 / 前端构建 |
-| npm | ≥ 9 | 包管理（已自带 Node.js） |
-| Docker Desktop | 最新 | 跑 MySQL + Redis |
+| 工具           | 版本  | 说明                     |
+| -------------- | ----- | ------------------------ |
+| Node.js        | ≥ 18 | 后端 / 前端构建          |
+| npm            | ≥ 9  | 包管理（已自带 Node.js） |
+| Docker Desktop | 最新  | 跑 MySQL + Redis         |
 
 > 没有 pnpm 也可以，全程用 `npm` 即可，命令已经统一。
 
@@ -33,6 +33,7 @@ npm run start:dev          # 启动，监听 :3000
 ```
 
 启动后访问：
+
 - 接口文档：http://localhost:3000/api/v1/docs
 - 健康检查（需 admin 登录后访问）：http://localhost:3000/api/v1/admin/health
 
@@ -46,10 +47,10 @@ npm run dev                # 启动，监听 :5174
 
 访问 http://localhost:5174 ，使用以下账号登录：
 
-| 账号 | 密码 | 角色 |
-| --- | --- | --- |
-| admin | Admin@123 | 超级管理员 |
-| operator1 | Operator@123 | 运营 |
+| 账号      | 密码         | 角色       |
+| --------- | ------------ | ---------- |
+| admin     | Admin@123    | 超级管理员 |
+| operator1 | Operator@123 | 运营       |
 
 ## 4. 启动用户端 H5
 
@@ -61,9 +62,9 @@ npm run dev                # 启动，监听 :5173
 
 访问 http://localhost:5173 ，测试账号：
 
-| 手机号 | 密码 | 角色 |
-| --- | --- | --- |
-| 13800000001 ~ 13800000006 | Pass1234 | 被介绍人 |
+| 手机号                    | 密码     | 角色                                  |
+| ------------------------- | -------- | ------------------------------------- |
+| 13800000001 ~ 13800000006 | Pass1234 | 被介绍人                              |
 | 13900000001 ~ 13900000003 | Pass1234 | 介绍人（邀请码 100001/100002/100003） |
 
 ## 5. 体验关键流程
@@ -83,6 +84,7 @@ npm run dev                # 启动，监听 :5173
 后端 `.env` 默认 `OSS_PROVIDER=aliyun`，但本地不配置 `OSS_ACCESS_KEY/SECRET` 时，签名接口会返回错误。
 
 **两种方式二选一：**
+
 - **A. 临时跑通**（推荐本地）：编辑 `backend/.env` 把 `OSS_PROVIDER=aliyun` 改为 `OSS_PROVIDER=mock`。上传走 `backend/uploads/` 本地存储。
 - **B. 真实 OSS**：填入阿里云 AccessKey / Secret / Bucket 即可。
 
@@ -90,16 +92,16 @@ npm run dev                # 启动，监听 :5173
 
 ## 7. 启动排错
 
-| 现象 | 排查 |
-| --- | --- |
-| 后端启动报 `Can't reach database` | `docker compose ps` 看 mysql 状态；等健康检查通过 |
-| Prisma migrate 失败 | 检查 `backend/.env` 的 `DATABASE_URL` 是否正确 |
-| 前端访问接口 404 | 看 vite proxy 配置，`/api` 转发到 `localhost:3000` |
-| 用户端登录后跳不到资料页 | 看浏览器控制台、vite 终端的 HMR 报错 |
-| 管理端列表加载不到数据 | 看后端日志是否有 401/403，确认已登录 |
-| 资料提交后状态没变 | 后端事务日志；JWT 是否过期；查看 `user_profiles_pending` 表 |
-| `docker compose up` 报 docker daemon 连不上 | 启动 Docker Desktop，等右下角图标变绿再重试 |
-| `MySQL` 容器起来但 `prisma migrate` 卡住 | 看 `docker logs friends-mysql`，等 `ready for connections` |
+| 现象                                          | 排查                                                          |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| 后端启动报`Can't reach database`            | `docker compose ps` 看 mysql 状态；等健康检查通过           |
+| Prisma migrate 失败                           | 检查`backend/.env` 的 `DATABASE_URL` 是否正确             |
+| 前端访问接口 404                              | 看 vite proxy 配置，`/api` 转发到 `localhost:3000`        |
+| 用户端登录后跳不到资料页                      | 看浏览器控制台、vite 终端的 HMR 报错                          |
+| 管理端列表加载不到数据                        | 看后端日志是否有 401/403，确认已登录                          |
+| 资料提交后状态没变                            | 后端事务日志；JWT 是否过期；查看`user_profiles_pending` 表  |
+| `docker compose up` 报 docker daemon 连不上 | 启动 Docker Desktop，等右下角图标变绿再重试                   |
+| `MySQL` 容器起来但 `prisma migrate` 卡住  | 看`docker logs friends-mysql`，等 `ready for connections` |
 
 ## 8. 常用命令
 

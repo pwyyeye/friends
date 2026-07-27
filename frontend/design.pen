@@ -1,0 +1,205 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "Jf4MR",
+      "x": 1297,
+      "y": 184,
+      "name": "Login Page",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bg-page",
+      "children": [
+        {
+          "type": "frame",
+          "id": "zG25L",
+          "name": "Brand Panel",
+          "width": 620,
+          "height": "fill_container",
+          "fill": {
+            "type": "gradient",
+            "gradientType": "linear",
+            "enabled": true,
+            "rotation": 135,
+            "size": {
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "$brand-dark",
+                "position": 0
+              },
+              {
+                "color": "$brand",
+                "position": 1
+              }
+            ]
+          },
+          "layout": "vertical",
+          "padding": 56,
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "dPWx6",
+              "name": "Logo",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OEEQk",
+                  "name": "Mark",
+                  "width": 34,
+                  "height": 34,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 9,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "V3KfO9",
+                      "name": "Icon",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "gem",
+                      "library": "lucide",
+                      "fill": "$brand"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "NvGwc",
+                  "name": "Wordmark",
+                  "fill": "$on-brand",
+                  "content": "Lumina",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RqQ1A",
+              "name": "Hero",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "W4up7E",
+                  "name": "Headline",
+                  "fill": "$on-brand",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Every detail, beautifully in view.",
+                  "lineHeight": 1.15,
+                  "fontFamily": "$font-heading",
+                  "fontSize": 42,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "uj1YU",
+                  "name": "Subtext",
+                  "fill": "#DAD8F5",
+                  "textGrowth": "fixed-width",
+                  "width": 440,
+                  "content": "Sign in to explore rich product insights, curated collections, and everything that makes your catalog shine.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "$font-body",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Rqsmr",
+              "name": "Footer",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Pqvcr",
+                  "name": "Copyright",
+                  "fill": "#B9B6E8",
+                  "content": "© 2026 Lumina Details. All rights reserved.",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "bg-page": {
+      "type": "color",
+      "value": "#F7F6F3"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "brand": {
+      "type": "color",
+      "value": "#4F46E5"
+    },
+    "brand-dark": {
+      "type": "color",
+      "value": "#312E81"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#1A1A2E"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#6B6B7B"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#9A9AA8"
+    },
+    "border": {
+      "type": "color",
+      "value": "#E5E4E0"
+    },
+    "field-bg": {
+      "type": "color",
+      "value": "#FBFBFA"
+    },
+    "on-brand": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "font-heading": {
+      "type": "string",
+      "value": "Poppins"
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 10
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 16
+    }
+  },
+  "fileToken": "ef6bedd1-a62e-4835-8c2a-ba14ff5aa09b"
+}

@@ -1,3 +1,5 @@
+按
+
 # Friends · 牵线交友平台
 
 > 以"介绍人牵线"为核心的轻量级交友平台。用户通过介绍人编码进入，平台采集画像信息，运营人员撮合并记录每一次成功牵线的关系链。
@@ -184,90 +186,90 @@ admins (管理员表，独立于 users)
 
 **users**
 
-| 字段            | 类型                          | 说明                                |
-| --------------- | ----------------------------- | ----------------------------------- |
-| id              | bigint PK                     |                                     |
-| phone           | varchar(20) unique            | 手机号即账号                        |
-| nickname        | varchar(50)                   |                                     |
-| gender          | tinyint                       | 1男 2女                             |
-| age             | int                           |                                     |
-| city_id         | bigint FK→cities.id           | 城市（字典）                        |
-| height          | int                           | 身高（cm）                          |
-| occupation_id   | bigint FK→occupations.id      | 职业（字典）                        |
-| occupation_custom | varchar(100) nullable      | 字典无对应时自填，审核通过后入字典 |
-| avatar_oss_key  | varchar(255)                  | 头像 OSS key（用户上传后回填）      |
-| invite_code     | varchar(8) unique             | 自己作为介绍人的邀请码（6 位数字）  |
-| referrer_id     | bigint nullable FK→users.id   | 我的介绍人（1:1 不可改，超管可转让）|
-| profile_status  | tinyint                       | 0 未提交 1 待审核 2 已通过 3 已驳回 |
-| status          | tinyint                       | 1启用 0禁用                         |
-| cancel_status   | tinyint                       | 0 正常 1 注销中 2 已注销            |
-| cancel_at       | datetime nullable             | 注销冷静期开始时间                  |
-| created_at, updated_at | datetime                |                                     |
+| 字段                   | 类型                         | 说明                                 |
+| ---------------------- | ---------------------------- | ------------------------------------ |
+| id                     | bigint PK                    |                                      |
+| phone                  | varchar(20) unique           | 手机号即账号                         |
+| nickname               | varchar(50)                  |                                      |
+| gender                 | tinyint                      | 1男 2女                              |
+| age                    | int                          |                                      |
+| city_id                | bigint FK→cities.id         | 城市（字典）                         |
+| height                 | int                          | 身高（cm）                           |
+| occupation_id          | bigint FK→occupations.id    | 职业（字典）                         |
+| occupation_custom      | varchar(100) nullable        | 字典无对应时自填，审核通过后入字典   |
+| avatar_oss_key         | varchar(255)                 | 头像 OSS key（用户上传后回填）       |
+| invite_code            | varchar(8) unique            | 自己作为介绍人的邀请码（6 位数字）   |
+| referrer_id            | bigint nullable FK→users.id | 我的介绍人（1:1 不可改，超管可转让） |
+| profile_status         | tinyint                      | 0 未提交 1 待审核 2 已通过 3 已驳回  |
+| status                 | tinyint                      | 1启用 0禁用                          |
+| cancel_status          | tinyint                      | 0 正常 1 注销中 2 已注销             |
+| cancel_at              | datetime nullable            | 注销冷静期开始时间                   |
+| created_at, updated_at | datetime                     |                                      |
 
 **user_interests**
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| user_id | bigint FK→users | |
+| 字段            | 类型                        | 说明     |
+| --------------- | --------------------------- | -------- |
+| id              | bigint PK                   |          |
+| user_id         | bigint FK→users            |          |
 | interest_tag_id | bigint FK→interest_tags.id | 关联字典 |
 
 `UNIQUE(user_id, interest_tag_id)` 防止重复。
 
 **user_custom_interests**（用户自填的兴趣）
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| user_id | bigint FK→users | |
-| tag_text | varchar(50) | 用户自定义的兴趣词 |
-| promoted | tinyint | 0 未提升 1 已提升为字典项 |
-| created_at | datetime | |
+| 字段       | 类型             | 说明                      |
+| ---------- | ---------------- | ------------------------- |
+| id         | bigint PK        |                           |
+| user_id    | bigint FK→users |                           |
+| tag_text   | varchar(50)      | 用户自定义的兴趣词        |
+| promoted   | tinyint          | 0 未提升 1 已提升为字典项 |
+| created_at | datetime         |                           |
 
 > 用户在资料采集时，如果兴趣字典里没有合适选项，可手动输入。审核通过后，超管可把高频自定义词批量「提升」到 `interest_tags` 字典里。
 
 **user_requirements**
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| user_id | bigint PK FK→users | 1:1 |
-| target_gender | tinyint | 1男 2女 0不限 |
-| target_age_min | int | |
-| target_age_max | int | |
+| 字段           | 类型                          | 说明             |
+| -------------- | ----------------------------- | ---------------- |
+| user_id        | bigint PK FK→users           | 1:1              |
+| target_gender  | tinyint                       | 1男 2女 0不限    |
+| target_age_min | int                           |                  |
+| target_age_max | int                           |                  |
 | target_city_id | bigint FK→cities.id nullable | 期望城市（字典） |
-| self_desc | text | 自我介绍 |
+| self_desc      | text                          | 自我介绍         |
 
 ### 6.3 字典表
 
 **cities**（城市字典）
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| name | varchar(50) unique | 城市名，如「杭州」 |
-| pinyin | varchar(50) | 用于排序/检索 |
-| province | varchar(50) | 所属省份 |
-| level | tinyint | 1一线 2新一线 3二线 4其他 |
-| status | tinyint | 1启用 0禁用 |
+| 字段     | 类型               | 说明                      |
+| -------- | ------------------ | ------------------------- |
+| id       | bigint PK          |                           |
+| name     | varchar(50) unique | 城市名，如「杭州」        |
+| pinyin   | varchar(50)        | 用于排序/检索             |
+| province | varchar(50)        | 所属省份                  |
+| level    | tinyint            | 1一线 2新一线 3二线 4其他 |
+| status   | tinyint            | 1启用 0禁用               |
 
 **occupations**（职业字典）
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| name | varchar(50) unique | 职业名，如「软件工程师」 |
-| category | varchar(50) | 大类，如「IT/互联网」 |
-| status | tinyint | 1启用 0禁用 |
+| 字段     | 类型               | 说明                     |
+| -------- | ------------------ | ------------------------ |
+| id       | bigint PK          |                          |
+| name     | varchar(50) unique | 职业名，如「软件工程师」 |
+| category | varchar(50)        | 大类，如「IT/互联网」    |
+| status   | tinyint            | 1启用 0禁用              |
 
 **interest_tags**（兴趣标签字典）
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| name | varchar(30) unique | 标签名 |
-| category | varchar(30) | 大类（运动/音乐/旅行...） |
-| sort | int | 展示排序 |
-| status | tinyint | 1启用 0禁用 |
+| 字段     | 类型               | 说明                      |
+| -------- | ------------------ | ------------------------- |
+| id       | bigint PK          |                           |
+| name     | varchar(30) unique | 标签名                    |
+| category | varchar(30)        | 大类（运动/音乐/旅行...） |
+| sort     | int                | 展示排序                  |
+| status   | tinyint            | 1启用 0禁用               |
 
 字典表初始数据通过 seed 脚本写入（约 100 个城市、80 个职业、60 个兴趣标签）。运营可管理端增删改。
 
@@ -301,15 +303,15 @@ admins (管理员表，独立于 users)
 
 **admins**
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| id | bigint PK | |
-| username | varchar(50) unique | 登录名 |
-| password_hash | varchar(255) | bcrypt |
-| role | varchar(20) | `super_admin` / `operator` |
-| status | tinyint | 1启用 0禁用 |
-| last_login_at | datetime nullable | |
-| created_at, updated_at | datetime | |
+| 字段                   | 类型               | 说明                           |
+| ---------------------- | ------------------ | ------------------------------ |
+| id                     | bigint PK          |                                |
+| username               | varchar(50) unique | 登录名                         |
+| password_hash          | varchar(255)       | bcrypt                         |
+| role                   | varchar(20)        | `super_admin` / `operator` |
+| status                 | tinyint            | 1启用 0禁用                    |
+| last_login_at          | datetime nullable  |                                |
+| created_at, updated_at | datetime           |                                |
 
 **audit_logs**
 
@@ -333,45 +335,45 @@ admins (管理员表，独立于 users)
 
 ### 7.1 用户端
 
-| Method | Path                          | 说明                                |
-| ------ | ----------------------------- | ----------------------------------- |
-| POST   | /api/v1/auth/register         | 注册（手机号 + 介绍人编码 + 密码）  |
-| POST   | /api/v1/auth/login            | 登录，返回 JWT                      |
-| GET    | /api/v1/me                    | 我的基本信息（不含详细资料）        |
-| GET    | /api/v1/profile               | 我的资料（已通过的版本）            |
-| POST   | /api/v1/profile/submit        | 提交资料进入待审核                  |
-| GET    | /api/v1/profile/status        | 我的资料审核状态                    |
-| PUT    | /api/v1/profile               | 用户修改资料 → 重新进入待审核       |
-| GET    | /api/v1/me/invite-code        | 我的邀请码                          |
-| GET    | /api/v1/me/invites            | 我邀请过的人                        |
-| POST   | /api/v1/upload/sign           | 申请 OSS 直传策略（头像）           |
-| POST   | /api/v1/account/cancel        | 申请注销（30 天冷静期）             |
-| GET    | /api/v1/dict/cities           | 城市字典（下拉）                    |
-| GET    | /api/v1/dict/occupations      | 职业字典（下拉）                    |
-| GET    | /api/v1/dict/interest-tags    | 兴趣标签字典（下拉）                |
+| Method | Path                       | 说明                               |
+| ------ | -------------------------- | ---------------------------------- |
+| POST   | /api/v1/auth/register      | 注册（手机号 + 介绍人编码 + 密码） |
+| POST   | /api/v1/auth/login         | 登录，返回 JWT                     |
+| GET    | /api/v1/me                 | 我的基本信息（不含详细资料）       |
+| GET    | /api/v1/profile            | 我的资料（已通过的版本）           |
+| POST   | /api/v1/profile/submit     | 提交资料进入待审核                 |
+| GET    | /api/v1/profile/status     | 我的资料审核状态                   |
+| PUT    | /api/v1/profile            | 用户修改资料 → 重新进入待审核     |
+| GET    | /api/v1/me/invite-code     | 我的邀请码                         |
+| GET    | /api/v1/me/invites         | 我邀请过的人                       |
+| POST   | /api/v1/upload/sign        | 申请 OSS 直传策略（头像）          |
+| POST   | /api/v1/account/cancel     | 申请注销（30 天冷静期）            |
+| GET    | /api/v1/dict/cities        | 城市字典（下拉）                   |
+| GET    | /api/v1/dict/occupations   | 职业字典（下拉）                   |
+| GET    | /api/v1/dict/interest-tags | 兴趣标签字典（下拉）               |
 
 ### 7.2 管理端（需 `admin` JWT）
 
-| Method   | Path                                          | 说明                       |
-| -------- | --------------------------------------------- | -------------------------- |
-| POST     | /api/v1/admin/auth/login                      | 管理员登录                 |
-| GET      | /api/v1/admin/users                           | 用户列表（分页/筛选/脱敏）|
-| GET/PUT  | /api/v1/admin/users/:id                       | 详情/编辑/禁用             |
-| GET      | /api/v1/admin/profiles/pending                | 待审核资料列表             |
-| GET      | /api/v1/admin/profiles/pending/:id            | 待审核详情                 |
-| POST     | /api/v1/admin/profiles/pending/:id/approve    | 审核通过                   |
-| POST     | /api/v1/admin/profiles/pending/:id/reject     | 审核驳回（带原因）         |
-| GET      | /api/v1/admin/referrers                       | 介绍人列表                 |
-| GET      | /api/v1/admin/referrers/:id/invitees          | 某介绍人邀请的用户         |
-| POST     | /api/v1/admin/users/:id/transfer-referrer     | 转让介绍人（仅 super_admin）|
-| POST/GET | /api/v1/admin/matches                         | 牵线记录                   |
-| GET      | /api/v1/admin/audit-logs                      | 审核/操作日志              |
-| GET      | /api/v1/admin/stats/dashboard                 | 看板数据                   |
-| GET      | /api/v1/admin/health                          | 健康检查（DB/Redis/OSS）   |
-| GET      | /api/v1/admin/dict/cities                     | 城市字典（下拉）           |
-| GET      | /api/v1/admin/dict/occupations                | 职业字典（下拉）           |
-| GET      | /api/v1/admin/dict/interest-tags              | 兴趣标签字典（下拉）       |
-| POST/GET | /api/v1/admin/dict/interests/promote          | 自定义兴趣 → 字典提升（仅 super_admin）|
+| Method   | Path                                       | 说明                                     |
+| -------- | ------------------------------------------ | ---------------------------------------- |
+| POST     | /api/v1/admin/auth/login                   | 管理员登录                               |
+| GET      | /api/v1/admin/users                        | 用户列表（分页/筛选/脱敏）               |
+| GET/PUT  | /api/v1/admin/users/:id                    | 详情/编辑/禁用                           |
+| GET      | /api/v1/admin/profiles/pending             | 待审核资料列表                           |
+| GET      | /api/v1/admin/profiles/pending/:id         | 待审核详情                               |
+| POST     | /api/v1/admin/profiles/pending/:id/approve | 审核通过                                 |
+| POST     | /api/v1/admin/profiles/pending/:id/reject  | 审核驳回（带原因）                       |
+| GET      | /api/v1/admin/referrers                    | 介绍人列表                               |
+| GET      | /api/v1/admin/referrers/:id/invitees       | 某介绍人邀请的用户                       |
+| POST     | /api/v1/admin/users/:id/transfer-referrer  | 转让介绍人（仅 super_admin）             |
+| POST/GET | /api/v1/admin/matches                      | 牵线记录                                 |
+| GET      | /api/v1/admin/audit-logs                   | 审核/操作日志                            |
+| GET      | /api/v1/admin/stats/dashboard              | 看板数据                                 |
+| GET      | /api/v1/admin/health                       | 健康检查（DB/Redis/OSS）                 |
+| GET      | /api/v1/admin/dict/cities                  | 城市字典（下拉）                         |
+| GET      | /api/v1/admin/dict/occupations             | 职业字典（下拉）                         |
+| GET      | /api/v1/admin/dict/interest-tags           | 兴趣标签字典（下拉）                     |
+| POST/GET | /api/v1/admin/dict/interests/promote       | 自定义兴趣 → 字典提升（仅 super_admin） |
 
 ### 7.3 统一响应格式
 
@@ -389,16 +391,16 @@ admins (管理员表，独立于 users)
 
 ### 7.4 错误码字典
 
-| 段位 | 模块 | 示例 |
-| --- | --- | --- |
-| 0 | 成功 | `0` |
-| 1000-1999 | 通用 / 鉴权 | `1001` 未登录 / `1002` token 过期 / `1003` 权限不足 / `1004` 限流 |
-| 2000-2999 | 用户 | `2001` 手机号已注册 / `2002` 用户不存在 / `2003` 账号已禁用 / `2004` 账号注销中 |
-| 3000-3999 | 介绍人 | `3001` 邀请码无效 / `3002` 邀请码冲突重试失败 |
-| 4000-4999 | 资料 | `4001` 资料待审核中 / `4002` 资料已通过 / `4003` 资料已驳回 / `4004` 资料不存在 |
-| 5000-5999 | 牵线 | `5001` 双方不能是同一人 / `5002` 介绍人不能是任一方 / `5003` 牵线记录不存在 |
-| 6000-6999 | 上传 | `6001` 文件超限 / `6002` 文件类型不允许 / `6003` OSS 签名生成失败 |
-| 9000-9999 | 系统 | `9001` 服务内部异常 / `9002` 数据库异常 / `9003` 外部依赖不可用 |
+| 段位      | 模块        | 示例                                                                                    |
+| --------- | ----------- | --------------------------------------------------------------------------------------- |
+| 0         | 成功        | `0`                                                                                   |
+| 1000-1999 | 通用 / 鉴权 | `1001` 未登录 / `1002` token 过期 / `1003` 权限不足 / `1004` 限流               |
+| 2000-2999 | 用户        | `2001` 手机号已注册 / `2002` 用户不存在 / `2003` 账号已禁用 / `2004` 账号注销中 |
+| 3000-3999 | 介绍人      | `3001` 邀请码无效 / `3002` 邀请码冲突重试失败                                       |
+| 4000-4999 | 资料        | `4001` 资料待审核中 / `4002` 资料已通过 / `4003` 资料已驳回 / `4004` 资料不存在 |
+| 5000-5999 | 牵线        | `5001` 双方不能是同一人 / `5002` 介绍人不能是任一方 / `5003` 牵线记录不存在       |
+| 6000-6999 | 上传        | `6001` 文件超限 / `6002` 文件类型不允许 / `6003` OSS 签名生成失败                 |
+| 9000-9999 | 系统        | `9001` 服务内部异常 / `9002` 数据库异常 / `9003` 外部依赖不可用                   |
 
 ### 7.5 关键业务约束
 
@@ -425,10 +427,10 @@ admins (管理员表，独立于 users)
 docker compose up -d mysql redis
 ```
 
-| 服务  | 端口 | 用途                  |
-| ----- | ---- | --------------------- |
-| mysql | 3306 | 主库                  |
-| redis | 6379 | 缓存 / 邀请码计数器  |
+| 服务  | 端口 | 用途                |
+| ----- | ---- | ------------------- |
+| mysql | 3306 | 主库                |
+| redis | 6379 | 缓存 / 邀请码计数器 |
 
 > docker-compose.yml 待开发完成后再提供，本节仅说明期望的服务清单。
 
@@ -632,12 +634,12 @@ pnpm dev                         # 监听 :5174
 
 ### 13.2 限流
 
-| 维度 | 阈值 | 实现 |
-| --- | --- | --- |
-| 注册接口 | IP: 5/min；phone: 5/h | `@nestjs/throttler` + Redis 计数器 |
-| 登录接口 | IP: 10/min；phone: 10/h | 同上 |
-| 资料提交 | user: 3/h | 同上 |
-| 管理端写操作 | admin: 60/min | 同上 |
+| 维度         | 阈值                    | 实现                                 |
+| ------------ | ----------------------- | ------------------------------------ |
+| 注册接口     | IP: 5/min；phone: 5/h   | `@nestjs/throttler` + Redis 计数器 |
+| 登录接口     | IP: 10/min；phone: 10/h | 同上                                 |
+| 资料提交     | user: 3/h               | 同上                                 |
+| 管理端写操作 | admin: 60/min           | 同上                                 |
 
 ### 13.3 上传文件约束
 
@@ -659,14 +661,14 @@ pnpm dev                         # 监听 :5174
 
 详见 [7.4 错误码字典](#74-错误码字典)。前端 toast 规则建议：
 
-| code 前缀 | 推荐 UI 反馈 |
-| --- | --- |
-| 1002 token 过期 | 弹窗 → 跳登录 |
-| 1003 权限不足 | 静默 + 跳 403 页 |
-| 1004 限流 | toast「操作频繁，请稍后再试」 |
-| 2001 手机号已注册 | 表单内红字提示 |
-| 4003 资料已驳回 | 跳驳回详情页 |
-| 9000+ | toast「系统异常，请稍后重试」+ 上报 Sentry |
+| code 前缀         | 推荐 UI 反馈                               |
+| ----------------- | ------------------------------------------ |
+| 1002 token 过期   | 弹窗 → 跳登录                             |
+| 1003 权限不足     | 静默 + 跳 403 页                           |
+| 1004 限流         | toast「操作频繁，请稍后再试」              |
+| 2001 手机号已注册 | 表单内红字提示                             |
+| 4003 资料已驳回   | 跳驳回详情页                               |
+| 9000+             | toast「系统异常，请稍后重试」+ 上报 Sentry |
 
 ### 13.6 用户注销
 
@@ -682,11 +684,11 @@ pnpm dev                         # 监听 :5174
 
 #### 设计原则
 
-| 字段 | 字典来源 | 是否支持自定义 |
-| --- | --- | --- |
-| 城市 (`city_id`) | `cities` 字典 | ❌ 仅字典，禁用城市无法被选 |
-| 职业 (`occupation_id`) | `occupations` 字典 | ✅ 可输入自定义词 |
-| 兴趣 (`interest_tag_id`) | `interest_tags` 字典 | ✅ 可输入自定义词 |
+| 字段                       | 字典来源               | 是否支持自定义              |
+| -------------------------- | ---------------------- | --------------------------- |
+| 城市 (`city_id`)         | `cities` 字典        | ❌ 仅字典，禁用城市无法被选 |
+| 职业 (`occupation_id`)   | `occupations` 字典   | ✅ 可输入自定义词           |
+| 兴趣 (`interest_tag_id`) | `interest_tags` 字典 | ✅ 可输入自定义词           |
 
 #### 接口
 

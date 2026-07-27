@@ -58,13 +58,14 @@ instance.interceptors.response.use(
 );
 
 export function get<T = unknown>(url: string, params?: object) {
-  return instance.get(url, { params }).then((r) => r.data as T);
+  // 拦截器已经解包 ApiEnvelope.data,这里 r 就是 data 本身,不要再 .data
+  return instance.get(url, { params }).then((r) => r as unknown as T);
 }
 export function post<T = unknown>(url: string, data?: object) {
-  return instance.post(url, data).then((r) => r.data as T);
+  return instance.post(url, data).then((r) => r as unknown as T);
 }
 export function put<T = unknown>(url: string, data?: object) {
-  return instance.put(url, data).then((r) => r.data as T);
+  return instance.put(url, data).then((r) => r as unknown as T);
 }
 
 export default instance;

@@ -1,27 +1,83 @@
 <template>
   <div class="me">
-    <div class="card profile-card">
-      <div class="avatar">{{ (me?.nickname || '?').charAt(0) }}</div>
-      <div class="info">
-        <div class="name">{{ me?.nickname || '未设置昵称' }}</div>
-        <div class="muted text-sm mono">{{ maskedPhone }}</div>
+    <!-- 用户头像卡：暖色背景 + 圆角 -->
+    <section class="me__profile">
+      <div class="me__profile-bg"></div>
+      <div class="me__profile-content">
+        <div class="me__avatar">{{ (me?.nickname || '?').charAt(0) }}</div>
+        <div class="me__info">
+          <div class="me__name serif">{{ me?.nickname || '未设置昵称' }}</div>
+          <div class="me__phone mono">{{ maskedPhone }}</div>
+        </div>
       </div>
+    </section>
+
+    <!-- 资料状态卡（按 profileStatus） -->
+    <section class="card">
+      <header class="me__section-head">
+        <h3 class="section-title section-title--sm">资料</h3>
+      </header>
+      <StatusBanner
+        v-if="me?.profileStatus === 2"
+        variant="approved"
+        title="已通过审核"
+        description="你的资料已经入池，等待被牵线"
+      />
+      <StatusBanner
+        v-else-if="me?.profileStatus === 1"
+        variant="pending"
+        title="审核中"
+        description="审核通常 1 个工作日内完成"
+      />
+      <StatusBanner
+        v-else-if="me?.profileStatus === 3"
+        variant="rejected"
+        title="已驳回"
+        :description="me.latestReject?.reason || '请修改后重新提交'"
+      />
+      <StatusBanner
+        v-else
+        variant="info"
+        title="资料未提交"
+        description="到「资料」填写完整资料以开启牵线"
+      />
+    </section>
+
+    <!-- 关系链 -->
+    <section class="card">
+      <header class="me__section-head">
+        <h3 class="section-title section-title--sm">关系链</h3>
+      </header>
+      <CellItem
+        icon="<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M16 11a4 4 0 1 0-4-4'/><path d='M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8'/><path d='M19 9l2 2-2 2'/></svg>"
+        title="我的介绍人"
+        :value="me?.referrer?.nickname || '无'"
+        clickable
+        @click="onShowReferrer"
+      />
+      <CellItem
+        icon="<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M16 6l-8 6 8 6'/><circle cx='19' cy='12' r='2'/><circle cx='5' cy='12' r='2'/></svg>"
+        title="我的邀请码"
+        :value="me?.inviteCode || '-'"
+      />
+    </section>
+
+    <!-- 关于 -->
+    <section class="card">
+      <header class="me__section-head">
+        <h3 class="section-title section-title--sm">关于</h3>
+      </header>
+      <CellItem title="版本" value="v1.0.0" />
+      <CellItem title="环境" :value="envNote" />
+    </section>
+
+    <div class="me__actions">
+      <van-button block plain type="danger" class="me__logout" @click="onLogout">
+        退出登录
+      </van-button>
     </div>
 
-    <div class="card">
-      <van-cell title="我的介绍人" :value="me?.referrer?.nickname || '无'" is-link @click="onShowReferrer" />
-      <van-cell title="我的邀请码" :value="me?.inviteCode" />
-      <van-cell title="资料状态" :value="profileLabel(me?.profileStatus)" />
-    </div>
-
-    <div class="card">
-      <van-cell title="版本" value="v1.0.0" />
-      <van-cell title="服务" :value="envNote" />
-    </div>
-
-    <div class="actions">
-      <van-button block type="danger" plain @click="onLogout">退出登录</van-button>
-    </div>
+    <p class="me__slogan serif">用 一 段 对 的 人 ，开 启 一 段 对 的 关 系</p>
   </div>
 </template>
 
@@ -31,6 +87,8 @@ import { useRouter } from 'vue-router';
 import { showDialog, showToast } from 'vant';
 import { get } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
+import StatusBanner from '@/components/StatusBanner.vue';
+import CellItem from '@/components/CellItem.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -45,11 +103,6 @@ const maskedPhone = computed(() => {
 });
 
 const envNote = computed(() => (location.hostname === 'localhost' ? '本地开发' : '生产环境'));
-
-const profileLabel = (s: number | undefined) => {
-  if (s === undefined) return '-';
-  return ['未提交', '待审核', '已通过', '已驳回'][s] || '-';
-};
 
 const onShowReferrer = () => {
   if (!me.value?.referrer) {
@@ -73,24 +126,83 @@ onMounted(fetchMe);
 </script>
 
 <style scoped>
-.me { padding: 12px 0; }
-.profile-card {
+.me { padding: 16px 16px 0; }
+
+/* —— 用户头像卡 ——————————————————————————————— */
+.me__profile {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  padding: 20px;
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+.me__profile-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(217, 119, 6, 0.45) 0%, transparent 50%),
+    linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+}
+.me__profile-content {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
+  z-index: 1;
 }
-.avatar {
-  width: 56px;
-  height: 56px;
+.me__avatar {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  font-weight: 500;
+  font-size: 26px;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
 }
-.name { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
-.actions { padding: 16px; }
+.me__info { color: #fff; }
+.me__name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.me__phone {
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
+  letter-spacing: 1px;
+}
+
+/* —— section head ————————————————————————————— */
+.me__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.me__section-head :deep(.section-title) { margin: 0; }
+
+/* —— 退出 ————————————————————————————————— */
+.me__actions {
+  margin-top: var(--space-6);
+}
+.me__logout {
+  height: 48px;
+  background: #fff;
+  border: 1px solid #f3c8c8;
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+}
+.me__slogan {
+  margin-top: var(--space-6);
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  letter-spacing: 4px;
+}
 </style>

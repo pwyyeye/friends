@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-import * as OSS from 'ali-oss';
+import OSS from 'ali-oss';
 import { PrismaService } from '@/prisma/prisma.service';
 import { BizException } from '@/common/exceptions';
 import { BizCode } from '@/common/constants';
@@ -9,6 +9,9 @@ import { BizCode } from '@/common/constants';
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const ALLOWED_EXT = new Set(['jpg', 'jpeg', 'png', 'webp']);
 const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_LIFESTYLE_PHOTOS = 9;
+
+type UploadPurpose = 'avatar' | 'lifestyle';
 
 @Injectable()
 export class UploadService {
@@ -18,7 +21,13 @@ export class UploadService {
   ) {}
 
   /** 生成 OSS 直传签名（mock 模式返回本地 mock-put URL） */
-  async signUpload(userId: bigint, filename: string, mimeType: string, size: number) {
+  async signUpload(
+    userId: bigint,
+    filename: string,
+    mimeType: string,
+    size: number,
+    purpose: UploadPurpose = 'avatar',
+  ) {
     if (!ALLOWED_MIME.has(mimeType)) {
       throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID);
     }
@@ -30,9 +39,17 @@ export class UploadService {
       throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID);
     }
 
+    // 生活照：限制总张数（1-9）
+    if (purpose === 'lifestyle') {
+      const count = await this.prisma.userPhoto.count({ where: { userId } });
+      if (count >= MAX_LIFESTYLE_PHOTOS) {
+        throw new BizException(BizCode.BAD_REQUEST, `生活照最多 ${MAX_LIFESTYLE_PHOTOS} 张`);
+      }
+    }
+
     const now = new Date();
     const yyyymm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const key = `avatar/${userId}/${yyyymm}/${uuidv4()}.${ext}`;
+    const key = `${purpose}/${userId}/${yyyymm}/${uuidv4()}.${ext}`;
     const provider = this.config.get<string>('OSS_PROVIDER') ?? 'aliyun';
 
     if (provider === 'mock') {
@@ -83,32 +100,38 @@ export class UploadService {
     };
   }
 
-  /** 用户提交上传成功后的 OSS key（用于头像字段） */
+  /** 用户提交上传成功后的 OSS key。avatar: 写入 User.avatarOssKey；lifestyle: 写入 UserPhoto 表 */
   async commitUpload(
     userId: bigint,
     ossKey: string,
     url: string,
     size: number,
     mimeType: string,
+    purpose: UploadPurpose = 'avatar',
   ) {
-    if (!ossKey.startsWith(`avatar/${userId}/`)) {
+    if (!ossKey.startsWith(`${purpose}/${userId}/`)) {
       throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID, '非法 key 前缀');
     }
     await this.prisma.uploadedFile.create({
-      data: {
-        userId,
-        ossKey,
-        url,
-        size,
-        mimeType,
-        purpose: 'avatar',
-      },
+      data: { userId, ossKey, url, size, mimeType, purpose },
     });
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { avatarOssKey: ossKey },
+
+    if (purpose === 'avatar') {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { avatarOssKey: ossKey },
+      });
+      return { ok: true, url, ossKey };
+    }
+
+    // lifestyle: 插入 UserPhoto（重复 ossKey 视为幂等成功）
+    const sort = await this.prisma.userPhoto.count({ where: { userId } });
+    const photo = await this.prisma.userPhoto.upsert({
+      where: { userId_ossKey: { userId, ossKey } },
+      update: {},
+      create: { userId, ossKey, url, sort },
     });
-    return { ok: true, url };
+    return { ok: true, url, ossKey, photoId: String(photo.id) };
   }
 
   /** mock 驱动：保存上传的本地文件 */
@@ -126,5 +149,21 @@ export class UploadService {
     await fs.mkdir(path.dirname(localPath), { recursive: true });
     await fs.writeFile(localPath, file.buffer);
     return { key, localPath };
+  }
+
+  /**
+   * 把 OSS key 转为可访问 URL。
+   * - mock 模式 → 本地静态文件端点
+   * - aliyun   → OSS_PUBLIC_BASE/key
+   */
+  toPublicUrl(key: string | null | undefined): string | null {
+    if (!key) return null;
+    const provider = this.config.get<string>('OSS_PROVIDER') ?? 'aliyun';
+    if (provider === 'mock') {
+      const port = this.config.get<string>('PORT') ?? '3000';
+      return `http://localhost:${port}/api/v1/upload/mock-file/${key}`;
+    }
+    const publicBase = this.config.get<string>('OSS_PUBLIC_BASE')!;
+    return `${publicBase}/${key}`;
   }
 }

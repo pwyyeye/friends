@@ -36,19 +36,27 @@ export class AuthService {
   async register(input: {
     phone: string;
     password: string;
-    inviteCode: string;
+    inviteCode?: string;
     nickname?: string;
   }) {
-    const referrer = await this.prisma.user.findUnique({
-      where: { inviteCode: input.inviteCode },
-      select: { id: true, status: true },
-    });
-    if (!referrer) {
-      throw new BizException(BizCode.REFERRER_CODE_INVALID, '邀请码无效');
+    const code = (input.inviteCode ?? '').trim();
+    let referrerId: bigint | null = null;
+
+    if (code) {
+      // 填了邀请码：必须能命中一个状态正常的介绍人
+      const referrer = await this.prisma.user.findUnique({
+        where: { inviteCode: code },
+        select: { id: true, status: true },
+      });
+      if (!referrer) {
+        throw new BizException(BizCode.REFERRER_CODE_INVALID, '邀请码无效');
+      }
+      if (referrer.status !== 1) {
+        throw new BizException(BizCode.USER_DISABLED, '介绍人账号已被禁用');
+      }
+      referrerId = referrer.id;
     }
-    if (referrer.status !== 1) {
-      throw new BizException(BizCode.USER_DISABLED, '介绍人账号已被禁用');
-    }
+    // 未填邀请码：referrerId 保持 null，不绑定介绍人
 
     const exists = await this.prisma.user.findUnique({
       where: { phone: input.phone },
@@ -66,7 +74,7 @@ export class AuthService {
         phone: input.phone,
         passwordHash,
         nickname: input.nickname ?? null,
-        referrerId: referrer.id,
+        referrerId,
         inviteCode,
         status: 1,
         profileStatus: 0,
@@ -175,11 +183,8 @@ export class AuthService {
   }
 
   private async signToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): Promise<string> {
-    const secret = this.config.get<string>('JWT_SECRET');
-    const expiresIn = this.config.get<string>('JWT_EXPIRES_IN') ?? '7d';
-    return this.jwtService.signAsync(payload, {
-      secret,
-      expiresIn,
-    });
+    // secret/expiresIn 由 app.module 中全局注册的 JwtModule 注入,
+    // 不在这里重复传 secret,避免双实例导致签发/校验 secret 不一致
+    return this.jwtService.signAsync(payload);
   }
 }

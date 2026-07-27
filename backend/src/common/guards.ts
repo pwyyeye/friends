@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { TokenExpiredError } from 'jsonwebtoken';
 import { BizException } from './exceptions';
 import { BizCode } from './constants';
 import {
@@ -44,7 +45,11 @@ export class JwtAuthGuard implements CanActivate {
     try {
       payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     } catch (err) {
-      throw new BizException(BizCode.TOKEN_EXPIRED, 'token 已过期', 401);
+      // 区分"过期"和"签名/格式错误",便于排查
+      if (err instanceof TokenExpiredError) {
+        throw new BizException(BizCode.TOKEN_EXPIRED, 'token 已过期', 401);
+      }
+      throw new BizException(BizCode.UNAUTHORIZED, 'token 无效', 401);
     }
 
     const requiredRoles = this.reflector.getAllAndOverride<string[] | undefined>(

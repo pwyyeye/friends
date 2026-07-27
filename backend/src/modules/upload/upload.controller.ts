@@ -1,13 +1,17 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
   Post,
   Req,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { UploadService } from './upload.service';
 import { Public, JwtPayload } from '@/common/decorators';
 
@@ -20,13 +24,14 @@ export class UploadController {
   @ApiOperation({ summary: '申请 OSS 直传策略' })
   async sign(
     @Req() req: { user: JwtPayload },
-    @Body() body: { filename: string; mimeType: string; size: number },
+    @Body() body: { filename: string; mimeType: string; size: number; purpose?: 'avatar' | 'lifestyle' },
   ) {
     return this.svc.signUpload(
       BigInt(req.user.sub),
       body.filename,
       body.mimeType,
       body.size,
+      body.purpose ?? 'avatar',
     );
   }
 
@@ -34,7 +39,7 @@ export class UploadController {
   @ApiOperation({ summary: '提交上传成功的 OSS key' })
   async commit(
     @Req() req: { user: JwtPayload },
-    @Body() body: { ossKey: string; url: string; size: number; mimeType: string },
+    @Body() body: { ossKey: string; url: string; size: number; mimeType: string; purpose?: 'avatar' | 'lifestyle' },
   ) {
     return this.svc.commitUpload(
       BigInt(req.user.sub),
@@ -42,6 +47,7 @@ export class UploadController {
       body.url,
       body.size,
       body.mimeType,
+      body.purpose ?? 'avatar',
     );
   }
 
@@ -66,5 +72,30 @@ export class UploadController {
     @Body('key') key: string,
   ) {
     return this.svc.saveMockUpload(file, key);
+  }
+
+  /** mock 驱动：读取本地 mock 上传的文件 */
+  @Public()
+  @Get('mock-file/*key')
+  async mockFile(@Param('key') key: string, @Res() res: Response) {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const localPath = path.join(process.cwd(), 'uploads', key);
+    try {
+      const buf = await fs.readFile(localPath);
+      // 从扩展名推 mime（够用）
+      const ext = path.extname(localPath).toLowerCase();
+      const mime =
+        ext === '.png'
+          ? 'image/png'
+          : ext === '.webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.send(buf);
+    } catch {
+      res.status(404).send('Not Found');
+    }
   }
 }
