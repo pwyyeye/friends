@@ -12,9 +12,10 @@
   --color-text-placeholder: #9ca3af;
   --color-text-disabled: #d1d5db;
 
-  --color-bg-page: #f5f6f8;
+  --color-bg-page: #f4f6fa;
   --color-bg-card: #ffffff;
-  --color-bg-hover: #f3f4f6;
+  --color-bg-hover: #f7f9fc;
+  --color-bg-soft: #fafbfd;
 
   --color-border: #e5e7eb;
   --color-border-light: #f3f4f6;
@@ -56,6 +57,9 @@ body {
   color: var(--color-text-primary);
   background: var(--color-bg-page);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
 }
 
 a { color: var(--color-primary); text-decoration: none; }
@@ -63,8 +67,17 @@ a:hover { color: var(--color-primary-hover); }
 
 /* Element Plus 主题覆盖（朴素风：去阴影、去圆角、平面化） */
 .el-button { border-radius: var(--radius-sm); font-weight: normal; }
-.el-card { border-radius: var(--radius-sm); box-shadow: none; border: 1px solid var(--color-border); }
-.el-card__header { padding: var(--space-md); border-bottom: 1px solid var(--color-border-light); font-weight: 600; }
+.el-card {
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+.el-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
 .el-input__wrapper, .el-textarea__inner, .el-select__wrapper {
   border-radius: var(--radius-sm) !important;
   box-shadow: 0 0 0 1px var(--color-border) inset !important;
@@ -110,6 +123,7 @@ a:hover { color: var(--color-primary-hover); }
 .gap-sm { gap: var(--space-sm); }
 .gap-md { gap: var(--space-md); }
 .muted { color: var(--color-text-secondary); }
-.mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.tabular { font-variant-numeric: tabular-nums; letter-spacing: 0.3px; }
 .text-sm { font-size: var(--font-size-sm); }
 .text-lg { font-size: var(--font-size-lg); }

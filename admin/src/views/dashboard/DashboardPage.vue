@@ -19,7 +19,7 @@
           <div class="kpi-icon"><el-icon><component :is="kpi.icon" /></el-icon></div>
           <div class="kpi-body">
             <div class="kpi-label">{{ kpi.label }}</div>
-            <div class="kpi-value mono">{{ kpi.value }}</div>
+            <div class="kpi-value tabular">{{ kpi.value }}</div>
             <div class="kpi-sub">{{ kpi.sub }}</div>
           </div>
           <div class="kpi-bar" :class="`bar-${kpi.tone}`"></div>
@@ -40,17 +40,17 @@
           <div class="metric-grid">
             <div class="metric">
               <div class="metric-label">新增用户</div>
-              <div class="metric-value mono">{{ data?.newUsers7d ?? '-' }}</div>
+              <div class="metric-value tabular">{{ data?.newUsers7d ?? '-' }}</div>
               <div class="metric-bar"><span :style="{ width: userBarWidth }"></span></div>
             </div>
             <div class="metric">
               <div class="metric-label">新增牵线</div>
-              <div class="metric-value mono">{{ data?.newMatches7d ?? '-' }}</div>
+              <div class="metric-value tabular">{{ data?.newMatches7d ?? '-' }}</div>
               <div class="metric-bar match"><span :style="{ width: matchBarWidth }"></span></div>
             </div>
             <div class="metric">
               <div class="metric-label">注销中账号</div>
-              <div class="metric-value mono">{{ data?.cancelCount ?? '-' }}</div>
+              <div class="metric-value tabular">{{ data?.cancelCount ?? '-' }}</div>
               <div class="metric-bar warn"><span :style="{ width: cancelBarWidth }"></span></div>
             </div>
           </div>
@@ -71,7 +71,7 @@
             <div class="health-item">
               <div class="dot" :class="dotClass(health?.checks?.mysql?.status)"></div>
               <span class="health-name">MySQL</span>
-              <span class="health-meta mono">{{ health?.checks?.mysql?.latencyMs ?? '-' }} ms</span>
+              <span class="health-meta tabular">{{ health?.checks?.mysql?.latencyMs ?? '-' }} ms</span>
             </div>
             <div class="health-item">
               <div class="dot" :class="dotClass(health?.checks?.oss?.status)"></div>
@@ -81,12 +81,12 @@
             <div class="health-item">
               <div class="dot tone-success"></div>
               <span class="health-name">运行时长</span>
-              <span class="health-meta mono">{{ Math.floor((health?.uptime ?? 0) / 60) }} 分钟</span>
+              <span class="health-meta tabular">{{ Math.floor((health?.uptime ?? 0) / 60) }} 分钟</span>
             </div>
             <div class="health-item">
               <div class="dot tone-info"></div>
               <span class="health-name">版本</span>
-              <span class="health-meta mono">{{ health?.version ?? '-' }}</span>
+              <span class="health-meta tabular">{{ health?.version ?? '-' }}</span>
             </div>
           </div>
         </el-card>
@@ -215,8 +215,8 @@ onMounted(() => {
   border-radius: 6px;
   color: #ffffff;
 }
-.hero-title { font-size: 20px; font-weight: 600; }
-.hero-sub { font-size: 13px; color: rgba(255, 255, 255, 0.75); margin-top: 6px; }
+.hero-title { font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+.hero-sub { font-size: 13px; color: rgba(255, 255, 255, 0.78); margin-top: 8px; letter-spacing: 0.2px; }
 .hero-actions { display: flex; gap: 10px; }
 :deep(.hero-actions .el-button) { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); color: #fff; }
 :deep(.hero-actions .el-button--primary) { background: #ffffff; color: var(--color-primary); border-color: #ffffff; }
@@ -235,6 +235,7 @@ onMounted(() => {
   align-items: flex-start;
   gap: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .kpi-card:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
@@ -249,9 +250,9 @@ onMounted(() => {
   flex-shrink: 0;
 }
 .kpi-body { flex: 1; min-width: 0; }
-.kpi-label { color: var(--color-text-secondary); font-size: 13px; }
-.kpi-value { font-size: 26px; font-weight: 600; color: var(--color-text-primary); margin: 6px 0 4px; }
-.kpi-sub { font-size: 12px; color: var(--color-text-secondary); }
+.kpi-label { color: var(--color-text-secondary); font-size: 13px; letter-spacing: 0.2px; }
+.kpi-value { font-size: 26px; font-weight: 600; color: var(--color-text-primary); margin: 6px 0 4px; letter-spacing: 0.3px; line-height: 1.2; }
+.kpi-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
 .kpi-bar {
   position: absolute;
   left: 0; top: 0; bottom: 0;
@@ -274,7 +275,7 @@ onMounted(() => {
 .row-mid .el-col { margin-bottom: 12px; }
 .panel { border-radius: 6px; }
 .panel-header { display: flex; align-items: center; justify-content: space-between; }
-.panel-title { font-weight: 600; }
+.panel-title { font-weight: 600; font-size: 15px; letter-spacing: 0.3px; }
 
 /* 指标网格 */
 .metric-grid {
@@ -283,15 +284,16 @@ onMounted(() => {
   gap: 12px;
 }
 .metric {
-  padding: 14px;
-  background: var(--color-bg-hover);
+  padding: 14px 16px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border-light);
   border-radius: 4px;
 }
-.metric-label { font-size: 13px; color: var(--color-text-secondary); }
-.metric-value { font-size: 22px; font-weight: 600; color: var(--color-text-primary); margin: 6px 0 10px; }
+.metric-label { font-size: 13px; color: var(--color-text-secondary); letter-spacing: 0.2px; }
+.metric-value { font-size: 22px; font-weight: 600; color: var(--color-text-primary); margin: 8px 0 12px; letter-spacing: 0.3px; }
 .metric-bar {
   height: 4px;
-  background: rgba(31, 58, 95, 0.1);
+  background: #eef1f5;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -307,8 +309,8 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
 }
-.health-name { width: 80px; font-size: 13px; color: var(--color-text-regular); }
-.health-meta { margin-left: auto; font-size: 12px; color: var(--color-text-secondary); }
+.health-name { width: 80px; font-size: 13px; color: var(--color-text-regular); letter-spacing: 0.2px; }
+.health-meta { margin-left: auto; font-size: 12px; color: var(--color-text-secondary); letter-spacing: 0.2px; }
 .dot {
   width: 8px;
   height: 8px;
@@ -353,8 +355,8 @@ onMounted(() => {
   font-size: 18px;
   margin-bottom: 10px;
 }
-.shortcut-name { font-weight: 600; font-size: 14px; }
-.shortcut-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+.shortcut-name { font-weight: 600; font-size: 14px; letter-spacing: 0.2px; }
+.shortcut-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; letter-spacing: 0.1px; }
 
 .shortcut.tone-info    .shortcut-icon { background: rgba(74, 91, 115, 0.12);  color: #4a5b73; }
 .shortcut.tone-warning .shortcut-icon { background: rgba(176, 125, 47, 0.12); color: var(--color-warning); }
