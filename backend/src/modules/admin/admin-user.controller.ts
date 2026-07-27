@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '@/prisma/prisma.service';
+import { UploadService } from '@/modules/upload/upload.service';
 import { BizException } from '@/common/exceptions';
 import { BizCode } from '@/common/constants';
 import { JwtPayload, Roles } from '@/common/decorators';
@@ -16,7 +17,10 @@ import { JwtPayload, Roles } from '@/common/decorators';
 @ApiTags('admin-user')
 @Controller('api/v1/admin/users')
 export class AdminUserController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly upload: UploadService,
+  ) {}
 
   @Get()
   @Roles('super_admin', 'operator')
@@ -107,6 +111,7 @@ export class AdminUserController {
         interests: { include: { interestTag: true } },
         customInterests: true,
         requirement: { include: { targetCity: true } },
+        photos: { orderBy: { sort: 'asc' } },
       },
     });
     if (!u) throw new BizException(BizCode.USER_NOT_FOUND);
@@ -126,6 +131,11 @@ export class AdminUserController {
       occupation: u.occupation ? { id: String(u.occupation.id), name: u.occupation.name } : null,
       occupationCustom: u.occupationCustom,
       avatarOssKey: u.avatarOssKey,
+      avatarUrl: this.upload.toPublicUrl(u.avatarOssKey),
+      photos: u.photos.map((ph) => ({
+        ossKey: ph.ossKey,
+        url: this.upload.toPublicUrl(ph.ossKey) ?? ph.url ?? null,
+      })),
       inviteCode: u.inviteCode,
       referrer: u.referrer
         ? {

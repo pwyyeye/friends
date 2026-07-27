@@ -4,12 +4,16 @@ import { BizException } from '@/common/exceptions';
 import { BizCode } from '@/common/constants';
 import { SubmitProfileDto } from '@/modules/profile/profile.dto';
 import { UpdateUserDto } from '@/modules/user/user.dto';
+import { UploadService } from '@/modules/upload/upload.service';
 
 const MAX_LIFESTYLE_PHOTOS = 9;
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly upload: UploadService,
+  ) {}
 
   /**
    * 把行政区代码（area code）解析为 City 表的真实 id。
@@ -175,6 +179,7 @@ export class ProfileService {
               nickname: true,
               inviteCode: true,
               createdAt: true,
+              avatarOssKey: true,
             },
           },
         },
@@ -182,15 +187,30 @@ export class ProfileService {
     ]);
     return {
       total,
-      items: items.map((p) => ({
-        id: String(p.id),
-        userId: String(p.user.id),
-        phone: p.user.phone ? p.user.phone.slice(0, 3) + '****' + p.user.phone.slice(-4) : null,
-        nickname: p.user.nickname,
-        inviteCode: p.user.inviteCode,
-        payload: p.payloadJson,
-        createdAt: p.createdAt,
-      })),
+      items: items.map((p) => {
+        const payload = p.payloadJson as Record<string, unknown> & {
+          photoOssKeys?: string[];
+          avatarOssKey?: string;
+        };
+        // 头像优先取 pending.payloadJson.avatarOssKey（用户本次提交的最新版本），否则回退到 User 表
+        const avatarKey =
+          (typeof payload.avatarOssKey === 'string' && payload.avatarOssKey) ||
+          p.user.avatarOssKey;
+        const photoKeys = Array.isArray(payload.photoOssKeys)
+          ? payload.photoOssKeys.filter((k): k is string => typeof k === 'string')
+          : [];
+        return {
+          id: String(p.id),
+          userId: String(p.userId),
+          phone: p.user.phone ? p.user.phone.slice(0, 3) + '****' + p.user.phone.slice(-4) : null,
+          nickname: p.user.nickname,
+          inviteCode: p.user.inviteCode,
+          avatarUrl: this.upload.toPublicUrl(avatarKey),
+          photoUrls: photoKeys.map((k) => this.upload.toPublicUrl(k)).filter(Boolean),
+          photoCount: photoKeys.length,
+          createdAt: p.createdAt,
+        };
+      }),
     };
   }
 
@@ -208,11 +228,15 @@ export class ProfileService {
     });
     if (!p) throw new BizException(BizCode.PROFILE_NOT_FOUND);
     const dto = p.payloadJson as unknown as SubmitProfileDto & { photoOssKeys?: string[] };
-    // 把 dto.photoOssKeys（ossKey 列表）解析成带 url 的对象
+    const avatarKey =
+      (typeof dto.avatarOssKey === 'string' && dto.avatarOssKey) || p.user.avatarOssKey;
+    const photoKeys = Array.isArray(dto.photoOssKeys) ? dto.photoOssKeys : [];
+    // URL 优先用 toPublicUrl（mock 走 MOCK_BASE_URL，aliyun 走 OSS_PUBLIC_BASE）；老数据
+    // 里 UserPhoto.url 可能保存了客户端拼出来的地址，仍保留作为兜底。
     const photoMap = new Map(p.user.photos.map((ph) => [ph.ossKey, ph.url]));
-    const photos = (dto.photoOssKeys ?? []).map((key) => ({
+    const photos = photoKeys.map((key) => ({
       ossKey: key,
-      url: photoMap.get(key) ?? null,
+      url: this.upload.toPublicUrl(key) ?? photoMap.get(key) ?? null,
     }));
     return {
       id: String(p.id),
@@ -221,7 +245,8 @@ export class ProfileService {
       nickname: p.user.nickname,
       payload: p.payloadJson,
       photos,
-      avatarUrl: photoMap.size ? null : null, // payload 不含 url；由前端单独渲染 payload.avatarOssKey
+      avatarUrl: this.upload.toPublicUrl(avatarKey),
+      avatarOssKey: avatarKey,
       status: p.status,
       rejectReason: p.rejectReason,
       reviewedAt: p.reviewedAt,

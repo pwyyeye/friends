@@ -3,6 +3,48 @@
     <div v-loading="loading" class="review">
       <template v-if="data">
         <section class="block">
+          <h4 class="block-title">头像</h4>
+          <div class="avatar-box">
+            <el-image
+              v-if="data.avatarUrl"
+              :src="data.avatarUrl"
+              :preview-src-list="[data.avatarUrl]"
+              :initial-index="0"
+              fit="cover"
+              class="avatar-img"
+              :preview-teleported="true"
+            >
+              <template #error>
+                <div class="img-fallback">加载失败</div>
+              </template>
+            </el-image>
+            <div v-else class="img-fallback img-fallback--lg">未上传头像</div>
+          </div>
+          <p class="muted text-xs mt-1">点击图片可放大查看</p>
+        </section>
+
+        <section class="block">
+          <h4 class="block-title">生活照 <span class="muted text-xs">({{ data.photos?.length || 0 }} 张)</span></h4>
+          <div v-if="data.photos?.length" class="photo-strip">
+            <el-image
+              v-for="(p, i) in data.photos"
+              :key="p.ossKey"
+              :src="p.url"
+              :preview-src-list="data.photos.map((x: any) => x.url).filter(Boolean)"
+              :initial-index="i"
+              fit="cover"
+              class="photo-img"
+              :preview-teleported="true"
+            >
+              <template #error>
+                <div class="img-fallback">?</div>
+              </template>
+            </el-image>
+          </div>
+          <div v-else class="muted">未上传生活照</div>
+        </section>
+
+        <section class="block">
           <h4 class="block-title">用户信息</h4>
           <el-descriptions :column="2" border size="small">
             <el-descriptions-item label="用户ID">{{ data.userId }}</el-descriptions-item>
@@ -135,4 +177,42 @@ const onReject = async () => {
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .pre { white-space: pre-wrap; word-break: break-word; font-size: 13px; }
 .actions { display: flex; gap: 12px; }
+
+.avatar-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-bg-section);
+  border: 1px solid var(--color-border);
+}
+.avatar-img { width: 120px; height: 120px; display: block; }
+.photo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.photo-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-section);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.img-fallback--lg {
+  width: 120px;
+  height: 120px;
+  font-size: 13px;
+}
+.mt-1 { margin-top: 6px; }
 </style>

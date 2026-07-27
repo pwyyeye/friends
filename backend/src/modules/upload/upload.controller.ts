@@ -74,28 +74,4 @@ export class UploadController {
     return this.svc.saveMockUpload(file, key);
   }
 
-  /** mock 驱动：读取本地 mock 上传的文件 */
-  @Public()
-  @Get('mock-file/*key')
-  async mockFile(@Param('key') key: string, @Res() res: Response) {
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const localPath = path.join(process.cwd(), 'uploads', key);
-    try {
-      const buf = await fs.readFile(localPath);
-      // 从扩展名推 mime（够用）
-      const ext = path.extname(localPath).toLowerCase();
-      const mime =
-        ext === '.png'
-          ? 'image/png'
-          : ext === '.webp'
-          ? 'image/webp'
-          : 'image/jpeg';
-      res.setHeader('Content-Type', mime);
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-      res.send(buf);
-    } catch {
-      res.status(404).send('Not Found');
-    }
-  }
 }

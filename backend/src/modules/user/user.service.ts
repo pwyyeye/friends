@@ -2,29 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { BizException } from '@/common/exceptions';
 import { BizCode } from '@/common/constants';
+import { UploadService } from '@/modules/upload/upload.service';
 
 function maskPhone(phone: string | null | undefined): string | null {
   if (!phone || phone.length < 7) return phone ?? null;
   return phone.slice(0, 3) + '****' + phone.slice(-4);
 }
 
-function publicUrlFor(key: string | null | undefined): string | null {
-  if (!key) return null;
-  // 注意：必须与 upload.service 的 URL 规则保持一致
-  // mock 模式: http://localhost:<PORT>/api/v1/upload/mock-file/<key>
-  // aliyun  : <OSS_PUBLIC_BASE>/<key>
-  const provider = process.env.OSS_PROVIDER ?? 'aliyun';
-  if (provider === 'mock') {
-    const port = process.env.PORT ?? '3000';
-    return `http://localhost:${port}/api/v1/upload/mock-file/${key}`;
-  }
-  const base = process.env.OSS_PUBLIC_BASE ?? '';
-  return `${base}/${key}`;
-}
-
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly upload: UploadService,
+  ) {}
+
+  /** URL 生成代理到 UploadService —— 单点真源（mock 走 MOCK_BASE_URL，aliyun 走 OSS_PUBLIC_BASE） */
+  private publicUrlFor(key: string | null | undefined): string | null {
+    return this.upload.toPublicUrl(key);
+  }
 
   /** 当前用户基本信息（不含详细资料） */
   async me(userId: bigint) {
@@ -49,9 +44,14 @@ export class UserService {
       phone: maskPhone(u.phone),
       nickname: u.nickname,
       inviteCode: u.inviteCode,
-      avatarUrl: publicUrlFor(u.avatarOssKey),
+      avatarUrl: this.publicUrlFor(u.avatarOssKey),
       avatarOssKey: u.avatarOssKey,
-      photos: u.photos.map((p) => ({ ossKey: p.ossKey, url: p.url })),
+      photos: u.photos.map((p) => ({
+        ossKey: p.ossKey,
+        // 优先用服务端按当前配置生成的 URL（mock 走 MOCK_BASE_URL，aliyun 走 OSS_PUBLIC_BASE）；
+        // 老数据里 p.url 可能是前端拼的，直接用 toPublicUrl 更可靠
+        url: this.publicUrlFor(p.ossKey) ?? p.url ?? '',
+      })),
       profileStatus: u.profileStatus,
       referrer: u.referrer
         ? {
@@ -93,9 +93,12 @@ export class UserService {
         ? { id: String(u.occupation.id), name: u.occupation.name }
         : null,
       occupationCustom: u.occupationCustom,
-      avatarUrl: publicUrlFor(u.avatarOssKey),
+      avatarUrl: this.publicUrlFor(u.avatarOssKey),
       avatarOssKey: u.avatarOssKey,
-      photos: u.photos.map((p) => ({ ossKey: p.ossKey, url: p.url })),
+      photos: u.photos.map((p) => ({
+        ossKey: p.ossKey,
+        url: this.publicUrlFor(p.ossKey) ?? p.url ?? '',
+      })),
       interests: u.interests.map((i) => ({
         id: String(i.interestTag.id),
         name: i.interestTag.name,
@@ -180,7 +183,7 @@ export class UserService {
         where: { ossKey: { in: photoOssKeys } },
       });
       const urlMap = new Map(rows.map((r) => [r.ossKey, r.url]));
-      photos = photoOssKeys.map((k) => ({ ossKey: k, url: urlMap.get(k) ?? publicUrlFor(k) ?? '' }));
+      photos = photoOssKeys.map((k) => ({ ossKey: k, url: urlMap.get(k) ?? this.publicUrlFor(k) ?? '' }));
     }
 
     const req = (p.requirement as Record<string, unknown> | undefined) ?? undefined;
@@ -210,7 +213,7 @@ export class UserService {
       occupation: occObj,
       occupationCustom: typeof p.occupationCustom === 'string' ? p.occupationCustom : null,
       avatarOssKey,
-      avatarUrl: publicUrlFor(avatarOssKey),
+      avatarUrl: this.publicUrlFor(avatarOssKey),
       photos,
       interests,
       customInterests: Array.isArray(p.customInterests)

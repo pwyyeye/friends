@@ -52,7 +52,26 @@ instance.interceptors.response.use(
     return response.data as any;
   },
   (error) => {
-    showFailToast(error.response?.data?.message || '网络异常');
+    const data = error.response?.data;
+    const bizCode = data?.code;
+    // 会话已失效：未登录(1001) / token 过期(1002) / 用户不存在(2002，常见于 DB 重新
+    // seed 后旧 token 的 sub 已无对应用户)。统一清空登录态并跳回登录页，避免拿着失效
+    // token 反复请求、页面卡在错误状态。
+    // 注意：这些 code 都是以 HTTP 4xx 返回的，走的是本 error 分支，而不是上面的 success 分支。
+    if (bizCode === 1001 || bizCode === 1002 || bizCode === 2002) {
+      const auth = useAuthStore();
+      auth.logout();
+      showDialog({
+        title: '提示',
+        message: '登录已失效，请重新登录',
+        showCancelButton: false,
+      }).then(() => {
+        location.hash = '#/login';
+        location.reload();
+      });
+    } else {
+      showFailToast(data?.message || '网络异常');
+    }
     return Promise.reject(error);
   },
 );

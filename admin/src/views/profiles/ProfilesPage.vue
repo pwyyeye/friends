@@ -11,8 +11,28 @@
       <el-table :data="list" v-loading="loading" stripe border>
         <el-table-column label="ID" prop="id" width="80" />
         <el-table-column label="用户ID" prop="userId" width="100" />
+        <el-table-column label="头像" width="70">
+          <template #default="{ row }">
+            <el-avatar
+              v-if="row.avatarUrl"
+              :src="row.avatarUrl"
+              :size="36"
+              shape="circle"
+              fit="cover"
+            />
+            <span v-else class="muted text-xs">无</span>
+          </template>
+        </el-table-column>
         <el-table-column label="昵称" prop="nickname" width="120" />
         <el-table-column label="手机号" prop="phone" width="140" />
+        <el-table-column label="生活照" width="90">
+          <template #default="{ row }">
+            <el-tag v-if="row.photoCount" size="small" type="success" effect="plain">
+              {{ row.photoCount }} 张
+            </el-tag>
+            <span v-else class="muted text-xs">无</span>
+          </template>
+        </el-table-column>
         <el-table-column label="邀请码" prop="inviteCode" width="100" />
         <el-table-column label="提交时间" width="170">
           <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>

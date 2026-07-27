@@ -12,6 +12,36 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
   });
+  const expressApp = app.getHttpAdapter().getInstance() as import('express').Express;
+  // 本地 mock OSS 文件下载：避免 NestJS 10 + path-to-regexp 6 的通配语法坑，
+  // 直接用 Express 原生中间件挂在 /api/v1/upload/mock-file/* 上。
+  expressApp.get(/^\/api\/v1\/upload\/mock-file\/(.+)$/, async (req, res) => {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const m = req.path.match(/^\/api\/v1\/upload\/mock-file\/(.+)$/);
+    const key = m ? m[1] : '';
+    if (!key) {
+      res.status(400).send('missing key');
+      return;
+    }
+    const localPath = path.join(process.cwd(), 'uploads', key);
+    try {
+      const buf = await fs.readFile(localPath);
+      const ext = path.extname(localPath).toLowerCase();
+      const mime =
+        ext === '.png'
+          ? 'image/png'
+          : ext === '.webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.send(buf);
+    } catch {
+      res.status(404).send('Not Found');
+    }
+  });
+
   const config = app.get(ConfigService);
 
   app.use(helmet());

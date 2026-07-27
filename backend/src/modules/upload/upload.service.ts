@@ -153,17 +153,22 @@ export class UploadService {
 
   /**
    * 把 OSS key 转为可访问 URL。
-   * - mock 模式 → 本地静态文件端点
-   * - aliyun   → OSS_PUBLIC_BASE/key
+   * - mock 模式：MOCK_BASE_URL（默认 http://localhost:PORT）/api/v1/upload/mock-file/<key>
+   * - aliyun 模式：OSS_PUBLIC_BASE/<key>
+   *
+   * 注意：mock 模式的 URL 前缀必须从配置（MOCK_BASE_URL）读取，不要硬编码 localhost，
+   * 否则部署到非本机环境或反代后所有图片都 404。
    */
   toPublicUrl(key: string | null | undefined): string | null {
     if (!key) return null;
     const provider = this.config.get<string>('OSS_PROVIDER') ?? 'aliyun';
     if (provider === 'mock') {
-      const port = this.config.get<string>('PORT') ?? '3000';
-      return `http://localhost:${port}/api/v1/upload/mock-file/${key}`;
+      const base =
+        this.config.get<string>('MOCK_BASE_URL') ??
+        `http://localhost:${this.config.get<string>('PORT') ?? '3000'}`;
+      return `${base.replace(/\/+$/, '')}/api/v1/upload/mock-file/${key}`;
     }
-    const publicBase = this.config.get<string>('OSS_PUBLIC_BASE')!;
-    return `${publicBase}/${key}`;
+    const publicBase = this.config.get<string>('OSS_PUBLIC_BASE') ?? '';
+    return `${publicBase.replace(/\/+$/, '')}/${key}`;
   }
 }
