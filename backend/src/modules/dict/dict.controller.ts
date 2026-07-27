@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Public } from '@/common/decorators';
+import { Public, Roles } from '@/common/decorators';
 
 @ApiTags('dict')
 @Controller('api/v1/dict')
@@ -50,6 +50,7 @@ export class DictController {
 
 @ApiTags('admin-dict')
 @Controller('api/v1/admin/dict')
+@Roles('super_admin', 'operator')
 export class AdminDictController {
   constructor(private readonly prisma: PrismaService) {}
 

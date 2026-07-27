@@ -1,13 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class RequirementDto {
@@ -96,6 +99,9 @@ export class SubmitProfileDto {
   customInterests!: string[];
 
   @ApiProperty({ type: RequirementDto })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => RequirementDto)
   requirement!: RequirementDto;
 }
 

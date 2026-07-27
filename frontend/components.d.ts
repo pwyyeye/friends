@@ -19,7 +19,6 @@ declare module 'vue' {
     VanCascader: typeof import('vant/es')['Cascader']
     VanIcon: typeof import('vant/es')['Icon']
     VanNavBar: typeof import('vant/es')['NavBar']
-    VanPicker: typeof import('vant/es')['Picker']
     VanPopup: typeof import('vant/es')['Popup']
   }
 }

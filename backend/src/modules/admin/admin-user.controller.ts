@@ -19,6 +19,7 @@ export class AdminUserController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
+  @Roles('super_admin', 'operator')
   @ApiOperation({ summary: '用户列表（脱敏）' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })

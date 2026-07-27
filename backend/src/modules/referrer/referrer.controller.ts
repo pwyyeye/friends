@@ -31,6 +31,7 @@ export class ReferrerController {
 
 @ApiTags('admin-referrer')
 @Controller('api/v1/admin/referrers')
+@Roles('super_admin', 'operator')
 export class AdminReferrerController {
   constructor(private readonly svc: ReferrerService) {}
 

@@ -497,13 +497,29 @@ const targetGenderText = computed(() => {
   const v = form.requirement.targetGender;
   return v === 1 ? '男' : v === 2 ? '女' : '不限';
 });
-const cityText = computed(() => cities.value.find((c) => Number(c.id) === form.cityId)?.name || '');
+const cityText = computed(() => {
+  // 兼容两种形式：form.cityId 可能是后端 id（自增）或区码（@vant/area-data 的 value）
+  // 后端 City 表 pinyin 字段存的是区码（如 110100），所以这里两种都尝试匹配
+  const id = form.cityId;
+  if (!id) return '';
+  return (
+    cities.value.find((c) => Number(c.id) === id)?.name ||
+    cities.value.find((c) => c.pinyin === String(id))?.name ||
+    ''
+  );
+});
 const occText = computed(
   () => occupations.value.find((c) => Number(c.id) === form.occupationId)?.name || form.occupationCustom,
 );
-const targetCityText = computed(
-  () => cities.value.find((c) => Number(c.id) === form.requirement.targetCityId)?.name || '',
-);
+const targetCityText = computed(() => {
+  const id = form.requirement.targetCityId;
+  if (!id) return '';
+  return (
+    cities.value.find((c) => Number(c.id) === id)?.name ||
+    cities.value.find((c) => c.pinyin === String(id))?.name ||
+    ''
+  );
+});
 
 const toggleTag = (id: number) => {
   if (readonly.value) return;

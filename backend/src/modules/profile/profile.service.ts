@@ -12,22 +12,30 @@ export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * 确保 City 表存在 id=areaCode 的记录。前端 cascader 用行政区代码当 cityId，
-   * 这里缺什么补什么，name 用占位（审核/管理端会修正），保证 FK 写入不报错。
+   * 把行政区代码（area code）解析为 City 表的真实 id。
+   * - 优先按 pinyin（seed 时存的就是区码）找到 seed 已有的城市并返回其 id；
+   * - 找不到再按 areaCode 直接 upsert 一条占位记录（id=areaCode）。
+   *
+   * 返回值是「应该写入 User.cityId 的最终 id」，调用方需要把 dto 里的 cityId 替换成它，
+   * 否则后续 /api/v1/profile 返回的还是占位城市。
    */
-  private async ensureCity(areaCode: bigint): Promise<void> {
-    const exists = await this.prisma.city.findUnique({ where: { id: areaCode } });
-    if (exists) return;
-    await this.prisma.city.create({
-      data: {
+  private async resolveCityId(areaCode: bigint): Promise<bigint> {
+    const pinyinStr = areaCode.toString();
+    const seeded = await this.prisma.city.findFirst({ where: { pinyin: pinyinStr } });
+    if (seeded) return seeded.id;
+    const created = await this.prisma.city.upsert({
+      where: { id: areaCode },
+      update: {},
+      create: {
         id: areaCode,
-        name: `code-${areaCode.toString()}`,
-        pinyin: areaCode.toString(),
+        name: `code-${pinyinStr}`,
+        pinyin: pinyinStr,
         province: '',
         level: 4,
         status: 1,
       },
     });
+    return created.id;
   }
 
   /** 用户端：修改基础资料（不触发审核） */
@@ -36,22 +44,37 @@ export class ProfileService {
     if (dto.nickname !== undefined) data.nickname = dto.nickname;
     if (dto.gender !== undefined) data.gender = dto.gender;
     if (dto.age !== undefined) data.age = dto.age;
-    if (dto.cityId !== undefined) data.cityId = dto.cityId;
+    if (dto.cityId !== undefined) {
+      // 同样走 resolveCityId：把前端发的区码转成 seed 真实 id，避免 FK 报错
+      const realId = await this.resolveCityId(BigInt(dto.cityId));
+      data.cityId = realId;
+    }
     if (dto.height !== undefined) data.height = dto.height;
     if (dto.occupationId !== undefined) data.occupationId = dto.occupationId;
     if (dto.occupationCustom !== undefined) data.occupationCustom = dto.occupationCustom;
     if (dto.avatarOssKey !== undefined) data.avatarOssKey = dto.avatarOssKey;
-    return this.prisma.user.update({ where: { id: userId }, data });
+    // 用 select 排除 passwordHash 等敏感字段
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: {
+        id: true, phone: true, nickname: true, gender: true, age: true,
+        cityId: true, height: true, occupationId: true, occupationCustom: true,
+        avatarOssKey: true, profileStatus: true,
+      },
+    });
   }
 
   /** 用户端：提交资料进入待审核池 */
   async submit(userId: bigint, dto: SubmitProfileDto) {
     // 城市：来自前端 area-data 的行政区代码（如 110100）；若 City 表不存在则按 area-data 自动 upsert
     if (dto.cityId !== undefined && dto.cityId !== null) {
-      await this.ensureCity(BigInt(dto.cityId));
+      const realId = await this.resolveCityId(BigInt(dto.cityId));
+      dto.cityId = Number(realId);
     }
     if (dto.requirement?.targetCityId !== undefined && dto.requirement.targetCityId !== null) {
-      await this.ensureCity(BigInt(dto.requirement.targetCityId));
+      const realId = await this.resolveCityId(BigInt(dto.requirement.targetCityId));
+      dto.requirement.targetCityId = Number(realId);
     }
     if (dto.occupationId) {
       const exists = await this.prisma.occupation.findUnique({
