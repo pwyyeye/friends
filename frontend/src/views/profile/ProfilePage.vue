@@ -336,7 +336,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { showToast, showSuccessToast } from 'vant';
+import { toast, successToast } from '@/utils/toast';
 import { get, post } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import InputField from '@/components/InputField.vue';
@@ -429,7 +429,7 @@ const openPicker = (which: PickerKey | CityPickerKey) => {
   if (readonly.value) return;
   if (which === 'city' || which === 'targetCity') {
     if (cities.value.length === 0) {
-      showToast('城市数据加载中，请稍后再试');
+      toast('城市数据加载中，请稍后再试');
       return;
     }
     cityPickerKey.value = which;
@@ -568,7 +568,7 @@ const onPhotosPicked = async (e: Event) => {
   if (!files.length) return;
   const slots = 9 - photos.value.length;
   if (slots <= 0) {
-    showToast('生活照最多 9 张');
+    toast('生活照最多 9 张');
     return;
   }
   const list = files.slice(0, slots);
@@ -635,12 +635,12 @@ const loadApproved = async () => {
 };
 
 const onSubmit = async () => {
-  if (!form.nickname.trim()) { showToast('请填写昵称'); return; }
-  if (!form.age) { showToast('请填写年龄'); return; }
-  if (!form.cityId) { showToast('请选择城市'); return; }
+  if (!form.nickname.trim()) { toast('请填写昵称'); return; }
+  if (!form.age) { toast('请填写年龄'); return; }
+  if (!form.cityId) { toast('请选择城市'); return; }
   if (photosRequired.value) {
-    if (!avatarOssKey.value) { showToast('请上传头像'); return; }
-    if (photos.value.length === 0) { showToast('请至少上传 1 张生活照'); return; }
+    if (!avatarOssKey.value) { toast('请上传头像'); return; }
+    if (photos.value.length === 0) { toast('请至少上传 1 张生活照'); return; }
   }
   submitting.value = true;
   try {
@@ -654,7 +654,7 @@ const onSubmit = async () => {
       },
     });
     auth.updateProfileStatus(1);
-    showSuccessToast('已提交审核');
+    successToast('已提交审核');
     loadStatus();
   } finally {
     submitting.value = false;

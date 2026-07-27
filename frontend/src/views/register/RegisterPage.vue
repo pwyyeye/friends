@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { showToast } from 'vant';
+import { toast, successToast } from '@/utils/toast';
 import { post } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import InputField from '@/components/InputField.vue';
@@ -114,16 +114,16 @@ const hasInviteCode = computed(() => /^\d{6}$/.test(form.inviteCode));
 
 const onSubmit = async () => {
   if (!form.phone.trim()) {
-    showToast('请输入手机号');
+    toast('请输入手机号');
     return;
   }
   if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(form.password)) {
-    showToast('密码需 ≥ 8 位且含字母数字');
+    toast('密码需 ≥ 8 位且含字母数字');
     return;
   }
   // 邀请码可选 —— 填了则必须 6 位数字
   if (form.inviteCode && !/^\d{6}$/.test(form.inviteCode)) {
-    showToast('邀请码格式不正确，应为 6 位数字');
+    toast('邀请码格式不正确，应为 6 位数字');
     return;
   }
   loading.value = true;
@@ -144,7 +144,7 @@ const onSubmit = async () => {
       password: form.password,
     });
     auth.setAuth(res.accessToken, res.user);
-    showToast('注册成功');
+    successToast('注册成功');
     router.push('/profile');
   } catch (err) {
     // eslint-disable-next-line no-console

@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { showDialog, showToast } from 'vant';
+import { toast, successToast, infoDialog } from '@/utils/toast';
 import { get } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import StatusBanner from '@/components/StatusBanner.vue';
@@ -106,19 +106,18 @@ const envNote = computed(() => (location.hostname === 'localhost' ? '本地开�
 
 const onShowReferrer = () => {
   if (!me.value?.referrer) {
-    showToast('暂无介绍人');
+    toast('暂无介绍人');
     return;
   }
-  showDialog({
+  infoDialog({
     title: '我的介绍人',
     message: `${me.value.referrer.nickname || '匿名'}（邀请码 ${me.value.referrer.inviteCode}）`,
-    showCancelButton: false,
   });
 };
 
 const onLogout = () => {
   auth.logout();
-  showToast('已退出');
+  successToast('已退出');
   router.push('/login');
 };
 

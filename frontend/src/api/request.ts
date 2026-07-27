@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { showToast, showFailToast, showDialog } from 'vant';
+import { failToast, infoDialog } from '@/utils/toast';
 import { useAuthStore } from '@/store/auth';
 
 export interface ApiEnvelope<T = unknown> {
@@ -30,22 +30,18 @@ instance.interceptors.response.use(
       if (body.code === 1001 || body.code === 1002) {
         const auth = useAuthStore();
         auth.logout();
-        showDialog({
-          title: '提示',
-          message: '登录已过期，请重新登录',
-          showCancelButton: false,
-        }).then(() => {
+        infoDialog({ message: '登录已过期，请重新登录' }).then(() => {
           location.hash = '#/login';
           location.reload();
         });
       } else if (body.code === 1003) {
-        showFailToast('权限不足');
+        failToast('权限不足');
       } else if (body.code === 1004) {
-        showToast({ type: 'fail', message: '操作频繁，请稍后再试' });
+        failToast('操作频繁，请稍后再试');
       } else if (body.code === 4003) {
-        showFailToast({ message: body.message || '资料已被驳回，请修改后重新提交' });
+        failToast(body.message || '资料已被驳回，请修改后重新提交');
       } else {
-        showFailToast(body.message || '请求失败');
+        failToast(body.message || '请求失败');
       }
       return Promise.reject(body);
     }
@@ -61,16 +57,12 @@ instance.interceptors.response.use(
     if (bizCode === 1001 || bizCode === 1002 || bizCode === 2002) {
       const auth = useAuthStore();
       auth.logout();
-      showDialog({
-        title: '提示',
-        message: '登录已失效，请重新登录',
-        showCancelButton: false,
-      }).then(() => {
+      infoDialog({ message: '登录已失效，请重新登录' }).then(() => {
         location.hash = '#/login';
         location.reload();
       });
     } else {
-      showFailToast(data?.message || '网络异常');
+      failToast(data?.message || '网络异常');
     }
     return Promise.reject(error);
   },

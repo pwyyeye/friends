@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { showToast } from 'vant';
+import { toast, successToast } from '@/utils/toast';
 import { post } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import InputField from '@/components/InputField.vue';
@@ -76,18 +76,18 @@ const iconLock =
 
 const onSubmit = async () => {
   if (!form.phone.trim()) {
-    showToast('请输入手机号');
+    toast('请输入手机号');
     return;
   }
   if (!form.password) {
-    showToast('请输入密码');
+    toast('请输入密码');
     return;
   }
   loading.value = true;
   try {
     const res = await post<{ accessToken: string; user: any }>('/api/v1/auth/login', form);
     auth.setAuth(res.accessToken, res.user);
-    showToast('登录成功');
+    successToast('登录成功');
     router.push('/profile');
   } catch (err) {
     // 错误提示已由响应拦截器统一通过 showFailToast 展示
