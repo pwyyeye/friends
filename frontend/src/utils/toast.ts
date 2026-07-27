@@ -26,8 +26,11 @@ const DEFAULT_FORBID_CLICK = true;
 
 /** 通用 toast — 通用提示默认 "fail" 类型（错误场景居多），需要成功反馈请用 successToast */
 export function toast(message: string, opts?: Partial<ToastOptions>) {
+  // 关闭 type=fail 的内置 X 图标(小尺寸下被识别成叹号)，改为纯文字条。
+  // success/loading 等保留自己的视觉反馈(图标/转圈)。
   return vantShowToast({
-    type: 'fail',
+    type: 'text',
+    className: 'app-toast app-toast--text',
     duration: DEFAULT_DURATION,
     forbidClick: DEFAULT_FORBID_CLICK,
     message,
@@ -45,7 +48,11 @@ export function successToast(message: string, opts?: Partial<ToastOptions>) {
 }
 
 export function failToast(message: string, opts?: Partial<ToastOptions>) {
+  // 错误反馈也只用文字,顶部不再叠红色"X/!"图标,通过 className 给提示文字上暖红
   return vantShowFail({
+    icon: '',
+    type: 'text',
+    className: 'app-toast app-toast--fail',
     duration: DEFAULT_DURATION,
     forbidClick: DEFAULT_FORBID_CLICK,
     message,

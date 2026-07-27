@@ -314,3 +314,41 @@ a { color: var(--color-primary); text-decoration: none; }
 /* —— Vant TabBar：透明，交给 PillTabBar 组件渲染 ————————————— */
 .van-tabbar { background: transparent; box-shadow: none; }
 .van-tabbar::after { display: none; }
+/* ============================================================
+ * 用户端 Toast 样式微调
+ * —— 去掉 fail 默认的红 X 图标(小尺寸下被识别成叹号)，仅保留文字条;
+ *    fail 文字用项目暖红色, success 保留绿色对勾
+ * ============================================================ */
+.app-toast {
+  max-width: 240px;
+  padding: 12px 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(31, 20, 16, 0.12);
+}
+/* 文字型（toast()）：无图标 */
+.app-toast--text .van-toast__text,
+.app-toast--fail .van-toast__text {
+  color: rgb(107, 61, 5); /* 暖棕：与项目 accent 系色一致 */
+}
+/* fail 字色加重，错误反馈够明显 */
+.app-toast--fail .van-toast__text {
+  color: #8a1c1c;
+  font-weight: 500;
+}
+/* success 文字保持默认 */
+
+/* ============================================================
+ * 用户端 Toast 微调
+ * —— 关闭 fail 默认的红 X 图标（用户反馈顶部叹号多余），改为纯文字条；
+ *    保留 Vant 默认深色背景 + 白字，简洁不打扰。
+ * ============================================================ */
+.app-toast {
+  min-width: 0;
+  width: auto;
+  max-width: 260px;
+  padding: 10px 16px;
+  box-shadow: 0 8px 24px rgba(31, 20, 16, 0.18);
+}
+.app-toast .van-toast__text { margin-top: 0; }
