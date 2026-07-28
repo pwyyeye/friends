@@ -59,6 +59,8 @@
         icon="<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M16 6l-8 6 8 6'/><circle cx='19' cy='12' r='2'/><circle cx='5' cy='12' r='2'/></svg>"
         title="我的邀请码"
         :value="me?.inviteCode || '-'"
+        clickable
+        @click="onShowInvite"
       />
     </section>
 
@@ -78,14 +80,45 @@
     </div>
 
     <p class="me__slogan serif">用 一 段 对 的 人 ，开 启 一 段 对 的 关 系</p>
+
+    <!-- 推广二维码弹窗 -->
+    <van-popup
+      v-model:show="inviteOpen"
+      round
+      position="bottom"
+      :style="{ padding: '20px 18px 24px' }"
+      closeable
+    >
+      <div v-if="inviteLoading" class="invite-loading">
+        <van-loading size="24" />
+      </div>
+      <template v-else-if="inviteInfo">
+        <h3 class="invite-title serif">我的推广码</h3>
+        <p class="invite-sub">扫码注册即可成为你的邀请用户</p>
+        <div class="invite-qr">
+          <img v-if="inviteQrUrl" :src="inviteQrUrl" alt="推广二维码" />
+        </div>
+        <p class="invite-code mono">邀请码 <b>{{ inviteInfo.inviteCode }}</b></p>
+        <p class="invite-link mono">{{ inviteInfo.inviteUrl }}</p>
+        <van-button
+          v-if="inviteInfo.inviteUrl"
+          block
+          type="primary"
+          class="invite-copy"
+          @click="onCopyLink"
+        >
+          复制推广链接
+        </van-button>
+      </template>
+    </van-popup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast, successToast, infoDialog } from '@/utils/toast';
-import { get } from '@/api/request';
+import { get, getRaw } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import StatusBanner from '@/components/StatusBanner.vue';
 import CellItem from '@/components/CellItem.vue';
@@ -114,6 +147,48 @@ const onShowReferrer = () => {
     message: `${me.value.referrer.nickname || '匿名'}（邀请码 ${me.value.referrer.inviteCode}）`,
   });
 };
+
+// ===== 推广二维码弹窗 =====
+const inviteOpen = ref(false);
+const inviteLoading = ref(false);
+const inviteInfo = ref<{ inviteCode: string; inviteUrl: string } | null>(null);
+const inviteQrUrl = ref('');
+let qrObjectUrl = '';
+const loadInvite = async () => {
+  inviteLoading.value = true;
+  try {
+    const info = await get<{ inviteCode: string; inviteUrl: string }>('/api/v1/me/invite-code');
+    inviteInfo.value = {
+      inviteCode: info.inviteCode,
+      inviteUrl: info.inviteUrl ?? '',
+    };
+    const blob = await getRaw('/api/v1/me/invite-qrcode', { responseType: 'blob' });
+    if (qrObjectUrl) URL.revokeObjectURL(qrObjectUrl);
+    qrObjectUrl = URL.createObjectURL(blob);
+    inviteQrUrl.value = qrObjectUrl;
+  } catch (e) {
+    toast('加载推广码失败');
+  } finally {
+    inviteLoading.value = false;
+  }
+};
+const onShowInvite = () => {
+  inviteOpen.value = true;
+  if (!inviteInfo.value) loadInvite();
+};
+const onCopyLink = async () => {
+  if (!inviteInfo.value?.inviteUrl) return;
+  try {
+    await navigator.clipboard.writeText(inviteInfo.value.inviteUrl);
+    successToast('已复制推广链接');
+  } catch {
+    toast('复制失败，请手动复制');
+  }
+};
+
+onBeforeUnmount(() => {
+  if (qrObjectUrl) URL.revokeObjectURL(qrObjectUrl);
+});
 
 const onLogout = () => {
   auth.logout();
@@ -203,5 +278,56 @@ onMounted(fetchMe);
   font-size: 12px;
   color: var(--color-text-muted);
   letter-spacing: 4px;
+}
+
+/* —— 推广二维码弹窗 ————————————————————————— */
+.invite-title {
+  text-align: center;
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.invite-sub {
+  text-align: center;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.invite-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+.invite-qr {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.invite-qr img {
+  width: 220px;
+  height: 220px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-light);
+  background: #fff;
+}
+.invite-code {
+  text-align: center;
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.invite-code b { color: var(--color-primary); font-size: 16px; margin-left: 4px; }
+.invite-link {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0 0 16px;
+  word-break: break-all;
+  padding: 0 8px;
+}
+.invite-copy {
+  height: 44px;
+  border-radius: var(--radius-md);
 }
 </style>

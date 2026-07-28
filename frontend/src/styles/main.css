@@ -325,6 +325,8 @@ a { color: var(--color-primary); text-decoration: none; }
   font-size: 15px;
   line-height: 1.5;
   border-radius: 14px;
+  background: #fff7ed; /* 暖白底：与项目 accent 米色系呼应 */
+  border: 1px solid rgba(180, 83, 9, 0.18);
   box-shadow: 0 6px 24px rgba(31, 20, 16, 0.12);
 }
 /* 文字型（toast()）：无图标 */
@@ -342,7 +344,7 @@ a { color: var(--color-primary); text-decoration: none; }
 /* ============================================================
  * 用户端 Toast 微调
  * —— 关闭 fail 默认的红 X 图标（用户反馈顶部叹号多余），改为纯文字条；
- *    保留 Vant 默认深色背景 + 白字，简洁不打扰。
+ *    背景已由前一块改为暖白底，文字色由 --text/--fail 接管。
  * ============================================================ */
 .app-toast {
   min-width: 0;

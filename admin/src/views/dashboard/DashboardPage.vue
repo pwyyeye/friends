@@ -238,6 +238,35 @@ onMounted(() => {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+.kpi-card.tone-primary { background: #ffffff; border-color: var(--color-border); }
+.kpi-card.tone-success { background: var(--color-success); border-color: var(--color-success); }
+.kpi-card.tone-warning { background: var(--color-warning); border-color: var(--color-warning); }
+.kpi-card.tone-info    { background: var(--color-info);    border-color: var(--color-info); }
+
+/* 深色背景卡片：前景统一为白色，并通过透明度做层次 */
+.kpi-card.tone-success .kpi-label,
+.kpi-card.tone-warning .kpi-label,
+.kpi-card.tone-info    .kpi-label { color: rgba(255, 255, 255, 0.85); }
+.kpi-card.tone-success .kpi-value,
+.kpi-card.tone-warning .kpi-value,
+.kpi-card.tone-info    .kpi-value { color: #ffffff; }
+.kpi-card.tone-success .kpi-sub,
+.kpi-card.tone-warning .kpi-sub,
+.kpi-card.tone-info    .kpi-sub   { color: rgba(255, 255, 255, 0.72); }
+
+/* 深色背景上的图标：半透明白底 + 白色图标 */
+.kpi-card.tone-success .kpi-icon,
+.kpi-card.tone-warning .kpi-icon,
+.kpi-card.tone-info    .kpi-icon {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* 深色背景上的 3px 侧边条：换成半透明白，避免被主色吞掉 */
+.kpi-card.tone-success .kpi-bar,
+.kpi-card.tone-warning .kpi-bar,
+.kpi-card.tone-info    .kpi-bar { background: rgba(255, 255, 255, 0.45); }
+
 .kpi-card:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
 .kpi-icon {
   width: 44px;

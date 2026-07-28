@@ -74,6 +74,7 @@ model User {
   profileStatus    Int       @default(0) // 0未提交 1待审核 2已通过 3已驳回
   status           Int       @default(1) // 1启用 0禁用
   cancelStatus     Int       @default(0) // 0正常 1注销中 2已注销
+  isReferrer       Boolean   @default(false) // 是否为介绍人：true 后台指定，开放推广二维码
   cancelAt         DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -101,6 +102,7 @@ model User {
   @@index([inviteCode])
   @@index([referrerId])
   @@index([status])
+  @@index([isReferrer])
   @@map("users")
 }
 

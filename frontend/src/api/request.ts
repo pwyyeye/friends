@@ -80,3 +80,10 @@ export function put<T = unknown>(url: string, data?: object) {
 }
 
 export default instance;
+/**
+ * 拿原始响应（不解 ApiEnvelope），用于 blob / arraybuffer 等非 JSON 场景
+ */
+export async function getRaw(url: string, config?: { responseType?: 'blob' | 'arraybuffer' }): Promise<Blob> {
+  const r = await instance.get(url, { responseType: config?.responseType ?? 'blob' });
+  return r.data as Blob;
+}

@@ -18,7 +18,6 @@ import {
   closeToast as vantCloseToast,
   type ToastOptions,
   type DialogOptions,
-  type DialogConfirmAction,
 } from 'vant';
 
 const DEFAULT_DURATION = 2500;
@@ -133,4 +132,4 @@ export async function withLoading<T>(
 }
 
 // 兼容以前的 DialogConfirmAction 引用（以后别处用得到）
-export type { DialogOptions, DialogConfirmAction };
+export type { DialogOptions };

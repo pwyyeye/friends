@@ -29,7 +29,7 @@ export class StatsController {
     ] = await Promise.all([
       this.prisma.user.count({ where: { cancelStatus: { not: 2 } } }),
       this.prisma.user.count({
-        where: { cancelStatus: { not: 2 }, invitees: { some: {} } },
+        where: { cancelStatus: { not: 2 }, isReferrer: true },
       }),
       this.prisma.matchRecord.count(),
       this.prisma.userProfilePending.count({ where: { status: 1 } }),
