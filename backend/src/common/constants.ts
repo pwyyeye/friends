@@ -9,6 +9,7 @@ export enum BizCode {
   RATE_LIMITED = 1004,
   BAD_REQUEST = 1005,
   NOT_FOUND = 1006,
+  FEATURE_DISABLED = 1007,
 
   // 2000-2999 用户
   USER_PHONE_REGISTERED = 2001,
@@ -57,6 +58,7 @@ export const BizCodeMessages: Record<number, string> = {
   1004: '操作频繁，请稍后再试',
   1005: '请求参数有误',
   1006: '资源不存在',
+  1007: '该功能暂未开放',
   2001: '手机号已注册',
   2002: '用户不存在',
   2003: '账号已被禁用',

@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <h1 class="login-title">Friends</h1>
-        <p class="login-sub">牵线交友平台 · 管理后台</p>
+        <p class="login-sub">父母帮子女相亲 · 管理后台</p>
       </div>
 
       <el-form
@@ -18,7 +18,12 @@
           <el-input v-model="form.username" placeholder="请输入管理员账号" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
+          <el-input
+            v-model="form.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+          />
         </el-form-item>
 
         <el-button
@@ -41,22 +46,22 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { ElMessage, FormInstance, FormRules } from 'element-plus';
-import { post } from '@/api/request';
-import { useAuthStore } from '@/store/auth';
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, FormInstance, FormRules } from "element-plus";
+import { post } from "@/api/request";
+import { useAuthStore } from "@/store/auth";
 
 const router = useRouter();
 const auth = useAuthStore();
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
-const form = reactive({ username: '', password: '' });
+const form = reactive({ username: "", password: "" });
 
 const rules: FormRules = {
-  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  username: [{ required: true, message: "请输入账号", trigger: "blur" }],
+  password: [{ required: true, message: "请输入密码", trigger: "blur" }],
 };
 
 const onSubmit = async () => {
@@ -65,16 +70,20 @@ const onSubmit = async () => {
     if (!valid) return;
     loading.value = true;
     try {
-      const res = await post<{ accessToken: string; admin: { id: string; username: string; role: 'super_admin' | 'operator' } }>(
-        '/api/v1/admin/auth/login',
-        form,
-      );
+      const res = await post<{
+        accessToken: string;
+        admin: {
+          id: string;
+          username: string;
+          role: "super_admin" | "operator";
+        };
+      }>("/api/v1/admin/auth/login", form);
       auth.setAuth(res.accessToken, res.admin);
-      ElMessage.success('登录成功');
-      router.push('/');
+      ElMessage.success("登录成功");
+      router.push("/");
     } catch (err) {
       // 业务/HTTP 错误已被 request.ts 拦截器用 ElMessage 弹窗，这里只阻止 unhandled
-      console.error('admin login failed', err);
+      console.error("admin login failed", err);
     } finally {
       loading.value = false;
     }

@@ -5,56 +5,76 @@ import {
   MaxLength,
   Matches,
   IsOptional,
-} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+  IsBoolean,
+  Equals,
+  IsIn,
+  IsUUID,
+} from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
-const PHONE_LOCALE = 'zh-CN';
+const PHONE_LOCALE = "zh-CN";
 
 export class RegisterDto {
-  @ApiProperty({ example: '13800138000', description: '手机号' })
+  @IsBoolean() @Equals(true) termsAccepted!: boolean;
+  @ApiProperty({ example: "13800138000", description: "手机号" })
   @IsString()
   @IsMobilePhone(PHONE_LOCALE)
   phone!: string;
 
-  @ApiProperty({ example: 'Pass1234', description: '密码 ≥ 8 位，含字母+数字' })
+  @ApiProperty({ example: "123456", description: "密码 6–32 位，不限制字母或数字" })
   @IsString()
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d).+$/, {
-    message: '密码必须同时包含字母和数字',
-  })
+  @MinLength(6, { message: "密码至少需要 6 位" })
+  @MaxLength(32, { message: "密码最多为 32 位" })
   password!: string;
 
-  @ApiProperty({ required: false, example: '123456', description: '介绍人 6 位邀请码（选填）' })
+  @ApiProperty({
+    required: false,
+    example: "123456",
+    description: "介绍人 6 位邀请码（选填）",
+  })
   @IsOptional()
   @IsString()
-  @Matches(/^\d{6}$/, { message: '邀请码必须为 6 位数字' })
+  @Matches(/^\d{6}$/, { message: "邀请码必须为 6 位数字" })
   inviteCode?: string;
 
-  @ApiProperty({ required: false, example: '小明' })
-  @IsOptional()
+  @ApiProperty({ example: "林妈妈", description: "父母称呼" })
   @IsString()
+  @Matches(/\S/, { message: "请填写您的称呼" })
   @MaxLength(50)
-  nickname?: string;
+  nickname!: string;
+}
+
+export class SendSmsDto {
+  @IsMobilePhone(PHONE_LOCALE) phone!: string;
+  @IsIn(["login", "register"]) purpose!: "login" | "register";
+}
+export class VerifySmsDto extends SendSmsDto {
+  @IsUUID() challengeId!: string;
+  @IsString() @Matches(/^\d{6}$/) code!: string;
+}
+export class SmsLoginDto extends VerifySmsDto {
+  @IsOptional() @IsString() @MaxLength(50) nickname?: string;
+  @IsOptional() @IsString() @Matches(/^\d{6}$/) inviteCode?: string;
+  @IsBoolean() @Equals(true) termsAccepted!: boolean;
 }
 
 export class LoginDto {
-  @ApiProperty({ example: '13800138000' })
+  @ApiProperty({ example: "13800138000" })
   @IsString()
   @IsMobilePhone(PHONE_LOCALE)
   phone!: string;
 
-  @ApiProperty({ example: 'Pass1234' })
+  @ApiProperty({ example: "Pass1234" })
   @IsString()
   password!: string;
 }
 
 export class AdminLoginDto {
-  @ApiProperty({ example: 'admin' })
+  @ApiProperty({ example: "admin" })
   @IsString()
   username!: string;
 
-  @ApiProperty({ example: 'Admin@123' })
+  @ApiProperty({ example: "Admin@123" })
   @IsString()
   password!: string;
 }

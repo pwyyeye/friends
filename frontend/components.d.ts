@@ -7,18 +7,22 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BirthDateField: typeof import('./src/components/BirthDateField.vue')['default']
     CellItem: typeof import('./src/components/CellItem.vue')['default']
+    ChildProfileSummary: typeof import('./src/components/ChildProfileSummary.vue')['default']
+    ChildStepFields: typeof import('./src/components/ChildStepFields.vue')['default']
+    CityField: typeof import('./src/components/CityField.vue')['default']
     CodeBlock: typeof import('./src/components/CodeBlock.vue')['default']
+    GenderCards: typeof import('./src/components/GenderCards.vue')['default']
     InputField: typeof import('./src/components/InputField.vue')['default']
     PillTabBar: typeof import('./src/components/PillTabBar.vue')['default']
+    PreferenceRange: typeof import('./src/components/PreferenceRange.vue')['default']
+    RecommendationCard: typeof import('./src/components/RecommendationCard.vue')['default']
+    RegistrationHeader: typeof import('./src/components/RegistrationHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StatusBanner: typeof import('./src/components/StatusBanner.vue')['default']
-    VanActionSheet: typeof import('vant/es')['ActionSheet']
-    VanButton: typeof import('vant/es')['Button']
-    VanCascader: typeof import('vant/es')['Cascader']
     VanIcon: typeof import('vant/es')['Icon']
-    VanLoading: typeof import('vant/es')['Loading']
     VanNavBar: typeof import('vant/es')['NavBar']
     VanPopup: typeof import('vant/es')['Popup']
   }

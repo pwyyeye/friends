@@ -1,74 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { BizException } from '@/common/exceptions';
-import { BizCode } from '@/common/constants';
-
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@/prisma/prisma.service";
+import { BizException } from "@/common/exceptions";
+import { BizCode } from "@/common/constants";
 @Injectable()
 export class MatchService {
   constructor(private readonly prisma: PrismaService) {}
-
   async create(
     input: {
-      userAId: bigint;
-      userBId: bigint;
-      referrerId: bigint;
+      profileAId: bigint;
+      profileBId: bigint;
+      referrerId?: bigint;
       matchedAt: Date;
       note?: string;
     },
     adminId: bigint,
   ) {
-    if (input.userAId === input.userBId) {
-      throw new BizException(BizCode.MATCH_SAME_USER);
-    }
-    if (
-      input.referrerId === input.userAId ||
-      input.referrerId === input.userBId
-    ) {
-      throw new BizException(BizCode.MATCH_REFERRER_CONFLICT);
-    }
-
-    const [a, b, r] = await Promise.all([
-      this.prisma.user.findUnique({
-        where: { id: input.userAId },
-        select: { id: true, status: true },
-      }),
-      this.prisma.user.findUnique({
-        where: { id: input.userBId },
-        select: { id: true, status: true },
-      }),
-      this.prisma.user.findUnique({
-        where: { id: input.referrerId },
-        select: { id: true, status: true },
-      }),
-    ]);
-    if (!a || !b || !r) {
-      throw new BizException(BizCode.USER_NOT_FOUND, '相关用户不存在');
-    }
-    if (a.status !== 1 || b.status !== 1 || r.status !== 1) {
-      throw new BizException(BizCode.USER_DISABLED, '存在已禁用账号');
-    }
-
+    if (input.profileAId === input.profileBId)
+      throw new BizException(
+        BizCode.MATCH_SAME_USER,
+        "请选择两个不同孩子的资料",
+      );
     return this.prisma.$transaction(async (tx) => {
+      const profiles = await tx.childProfile.findMany({
+        where: { id: { in: [input.profileAId, input.profileBId] } },
+        include: { owner: true },
+      });
+      if (
+        profiles.length !== 2 ||
+        profiles.some(
+          (p) =>
+            p.profileStatus !== 2 ||
+            !p.approvedPayload ||
+            p.owner.status !== 1 ||
+            p.owner.cancelStatus !== 0 ||
+            p.matchmakingStatus !== "active",
+        )
+      )
+        throw new BizException(
+          BizCode.BAD_REQUEST,
+          "只能为账号正常且审核通过的孩子建立牵线记录",
+        );
+      if (input.referrerId) {
+        const r = await tx.user.findUnique({ where: { id: input.referrerId } });
+        if (!r || !r.isReferrer || r.status !== 1 || r.cancelStatus !== 0)
+          throw new BizException(BizCode.REFERRER_CODE_INVALID);
+        if (profiles.some((p) => p.ownerAccountId === r.id))
+          throw new BizException(BizCode.MATCH_REFERRER_CONFLICT);
+      }
       const m = await tx.matchRecord.create({
-        data: {
-          userAId: input.userAId,
-          userBId: input.userBId,
-          referrerId: input.referrerId,
-          matchedAt: input.matchedAt,
-          note: input.note,
-          createdBy: adminId,
-        },
+        data: { ...input, createdBy: adminId },
       });
       await tx.auditLog.create({
         data: {
           adminId,
-          action: 'match.create',
-          targetType: 'match',
+          action: "match.create",
+          targetType: "match",
           targetId: m.id,
           payloadJson: {
-            userAId: String(input.userAId),
-            userBId: String(input.userBId),
-            referrerId: String(input.referrerId),
+            profileAId: String(input.profileAId),
+            profileBId: String(input.profileBId),
+            referrerId: input.referrerId ? String(input.referrerId) : null,
             matchedAt: input.matchedAt.toISOString(),
           },
         },
@@ -76,7 +67,6 @@ export class MatchService {
       return { id: String(m.id) };
     });
   }
-
   async adminList(params: {
     page: number;
     pageSize: number;
@@ -84,57 +74,47 @@ export class MatchService {
     from?: string;
     to?: string;
   }) {
-    const where: Record<string, unknown> = {};
+    const where: any = {};
     if (params.referrerId) where.referrerId = BigInt(params.referrerId);
-    if (params.from || params.to) {
+    if (params.from || params.to)
       where.matchedAt = {
         ...(params.from ? { gte: new Date(params.from) } : {}),
         ...(params.to ? { lte: new Date(params.to) } : {}),
       };
-    }
-    const skip = (params.page - 1) * params.pageSize;
-    const [total, items] = await Promise.all([
+    const take = Math.min(Math.max(params.pageSize || 20, 1), 100);
+    const [total, rows] = await Promise.all([
       this.prisma.matchRecord.count({ where }),
       this.prisma.matchRecord.findMany({
         where,
-        orderBy: { matchedAt: 'desc' },
-        skip,
-        take: params.pageSize,
+        take,
+        skip: (Math.max(params.page || 1, 1) - 1) * take,
+        orderBy: { matchedAt: "desc" },
         include: {
-          userA: { select: { id: true, nickname: true, phone: true } },
-          userB: { select: { id: true, nickname: true, phone: true } },
-          referrer: { select: { id: true, nickname: true, inviteCode: true } },
-          createdByAdmin: { select: { username: true } },
+          profileA: { include: { owner: true } },
+          profileB: { include: { owner: true } },
+          referrer: true,
+          createdByAdmin: true,
         },
       }),
     ]);
+    const child = (p: (typeof rows)[number]["profileA"]) => ({
+      id: String(p.id),
+      nickname: (p.approvedPayload as any)?.nickname || "未填写称呼",
+      parentName: p.owner.nickname,
+      phone: p.owner.phone.slice(0, 3) + "****" + p.owner.phone.slice(-4),
+    });
     return {
       total,
-      items: items.map((m) => ({
+      items: rows.map((m) => ({
         id: String(m.id),
-        userA: {
-          id: String(m.userA.id),
-          nickname: m.userA.nickname,
-          phone: m.userA.phone
-            ? m.userA.phone.slice(0, 3) + '****' + m.userA.phone.slice(-4)
-            : null,
-        },
-        userB: {
-          id: String(m.userB.id),
-          nickname: m.userB.nickname,
-          phone: m.userB.phone
-            ? m.userB.phone.slice(0, 3) + '****' + m.userB.phone.slice(-4)
-            : null,
-        },
-        referrer: {
-          id: String(m.referrer.id),
-          nickname: m.referrer.nickname,
-          inviteCode: m.referrer.inviteCode,
-        },
+        profileA: child(m.profileA),
+        profileB: child(m.profileB),
+        referrer: m.referrer
+          ? { id: String(m.referrer.id), nickname: m.referrer.nickname }
+          : null,
         matchedAt: m.matchedAt,
         note: m.note,
         createdBy: m.createdByAdmin.username,
-        createdAt: m.createdAt,
       })),
     };
   }

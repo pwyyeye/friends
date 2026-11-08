@@ -1,0 +1,7 @@
+ALTER TABLE `users`
+  ADD COLUMN `termsVersion` VARCHAR(30) NULL,
+  ADD COLUMN `termsAcceptedAt` DATETIME(3) NULL;
+
+ALTER TABLE `user_profiles_pending`
+  ADD COLUMN `consentVersion` VARCHAR(30) NOT NULL DEFAULT '2026-10-06',
+  ADD COLUMN `consentAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);

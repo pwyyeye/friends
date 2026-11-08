@@ -3,43 +3,40 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span class="card-title">待审核资料</span>
+          <span class="card-title">待审核孩子资料</span>
           <span class="muted text-sm">共 {{ total }} 条</span>
         </div>
       </template>
 
       <el-table :data="list" v-loading="loading" stripe border>
         <el-table-column label="ID" prop="id" width="80" />
-        <el-table-column label="用户ID" prop="userId" width="100" />
-        <el-table-column label="头像" width="70">
-          <template #default="{ row }">
-            <el-avatar
-              v-if="row.avatarUrl"
-              :src="row.avatarUrl"
-              :size="36"
-              shape="circle"
-              fit="cover"
-            />
-            <span v-else class="muted text-xs">无</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="昵称" prop="nickname" width="120" />
-        <el-table-column label="手机号" prop="phone" width="140" />
-        <el-table-column label="生活照" width="90">
-          <template #default="{ row }">
-            <el-tag v-if="row.photoCount" size="small" type="success" effect="plain">
-              {{ row.photoCount }} 张
-            </el-tag>
-            <span v-else class="muted text-xs">无</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="邀请码" prop="inviteCode" width="100" />
+        <el-table-column label="孩子资料 ID" prop="profileId" width="120" />
+        <el-table-column label="孩子称呼"
+          ><template #default="{ row }">{{
+            row.payload.nickname || "未填写"
+          }}</template></el-table-column
+        >
+        <el-table-column label="登记父母" prop="parentName" />
+        <el-table-column label="父母手机号" prop="phone" width="150" />
+        <el-table-column label="孩子照片" width="100"
+          ><template #default="{ row }"
+            >{{ row.payload.photos?.length || 0 }} 张</template
+          ></el-table-column
+        >
         <el-table-column label="提交时间" width="170">
-          <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
+          <template #default="{ row }">{{
+            formatTime(row.createdAt)
+          }}</template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button text size="small" type="primary" @click="openDetail(row.id)">查看详情</el-button>
+            <el-button
+              text
+              size="small"
+              type="primary"
+              @click="openDetail(row.id)"
+              >查看详情</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -66,10 +63,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import dayjs from 'dayjs';
-import { get } from '@/api/request';
-import ProfileReviewDrawer from './ProfileReviewDrawer.vue';
+import { onMounted, ref } from "vue";
+import dayjs from "dayjs";
+import { get } from "@/api/request";
+import ProfileReviewDrawer from "./ProfileReviewDrawer.vue";
 
 const list = ref<any[]>([]);
 const total = ref(0);
@@ -82,10 +79,13 @@ const currentId = ref<string | null>(null);
 const fetch = async () => {
   loading.value = true;
   try {
-    const res = await get<{ total: number; items: any[] }>('/api/v1/admin/profiles/pending', {
-      page: page.value,
-      pageSize: pageSize.value,
-    });
+    const res = await get<{ total: number; items: any[] }>(
+      "/api/v1/admin/profiles/pending",
+      {
+        page: page.value,
+        pageSize: pageSize.value,
+      },
+    );
     list.value = res.items;
     total.value = res.total;
   } finally {
@@ -98,14 +98,28 @@ const openDetail = (id: string) => {
   drawerOpen.value = true;
 };
 
-const formatTime = (t: string) => dayjs(t).format('YYYY-MM-DD HH:mm');
+const formatTime = (t: string) => dayjs(t).format("YYYY-MM-DD HH:mm");
 
 onMounted(fetch);
 </script>
 
 <style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.card-title { font-weight: 600; }
-.pager { margin-top: 16px; display: flex; justify-content: flex-end; }
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-title {
+  font-weight: 600;
+}
+.pager {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

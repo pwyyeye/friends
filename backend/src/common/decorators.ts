@@ -13,6 +13,7 @@ export const CURRENT_USER_KEY = 'currentUser';
 export interface JwtPayload {
   sub: string; // userId (string 化的 bigint) 或 adminId
   role: 'user' | 'super_admin' | 'operator';
+  authVersion?: number;
   iat?: number;
   exp?: number;
   jti?: string;

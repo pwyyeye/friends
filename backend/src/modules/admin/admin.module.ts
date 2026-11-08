@@ -1,9 +1,12 @@
-import { Module } from '@nestjs/common';
-import { AdminUserController } from './admin-user.controller';
-import { UploadModule } from '@/modules/upload/upload.module';
+import { Module } from "@nestjs/common";
+import {
+  AdminUserController,
+  AdminChildController,
+} from "./admin-user.controller";
+import { ProfileModule } from "@/modules/profile/profile.module";
 
 @Module({
-  imports: [UploadModule],
-  controllers: [AdminUserController],
+  imports: [ProfileModule],
+  controllers: [AdminUserController, AdminChildController],
 })
 export class AdminModule {}

@@ -453,7 +453,7 @@ const INTERESTS: Array<{ name: string; category: string; sort: number }> = [
 ];
 
 async function main() {
-  console.log('🌱 Start seeding...');
+  console.log("🌱 Start seeding...");
 
   // 1) 字典数据
   for (const c of CITIES) {
@@ -477,12 +477,14 @@ async function main() {
       create: t,
     });
   }
-  console.log(`  ✓ Cities: ${CITIES.length}, Occupations: ${OCCUPATIONS.length}, Interests: ${INTERESTS.length}`);
+  console.log(
+    `  ✓ Cities: ${CITIES.length}, Occupations: ${OCCUPATIONS.length}, Interests: ${INTERESTS.length}`,
+  );
 
   // 2) 管理员
   const admins = [
-    { username: 'admin', password: 'Admin@123', role: 'super_admin' },
-    { username: 'operator1', password: 'Operator@123', role: 'operator' },
+    { username: "admin", password: "Admin@123", role: "super_admin" },
+    { username: "operator1", password: "Operator@123", role: "operator" },
   ];
   for (const a of admins) {
     const passwordHash = await bcrypt.hash(a.password, 12);
@@ -499,253 +501,142 @@ async function main() {
   }
   console.log(`  ✓ Admins: ${admins.length}`);
 
-  // 3) 测试介绍人（3 个）
-  const referrerSpecs = [
-    { phone: '13900000001', nickname: '王大姐', inviteCode: '100001' },
-    { phone: '13900000002', nickname: '李姐',   inviteCode: '100002' },
-    { phone: '13900000003', nickname: '张哥',   inviteCode: '100003' },
+  const passwordHash = await bcrypt.hash("Pass1234", 12);
+  const referrer = await prisma.user.upsert({
+    where: { phone: "13900000001" },
+    update: {},
+    create: {
+      phone: "13900000001",
+      nickname: "王大姐",
+      passwordHash,
+      inviteCode: "100001",
+      isReferrer: true,
+    },
+  });
+  const city = await prisma.city.findUniqueOrThrow({
+    where: { name: "上海市" },
+  });
+  const specs = [
+    {
+      phone: "13800000001",
+      parent: "林妈妈",
+      child: "小林",
+      gender: 2,
+      birthDate: "1998-04-16",
+      state: 2,
+      relation: "mother",
+    },
+    {
+      phone: "13800000002",
+      parent: "陈爸爸",
+      child: "小陈",
+      gender: 1,
+      birthDate: "1996-09-20",
+      state: 2,
+      relation: "father",
+    },
+    {
+      phone: "13800000003",
+      parent: "周妈妈",
+      child: "小周",
+      gender: 2,
+      birthDate: "1999-02-18",
+      state: 1,
+      relation: "mother",
+    },
+    {
+      phone: "13800000004",
+      parent: "李爸爸",
+      child: "小李",
+      gender: 1,
+      birthDate: "1997-12-10",
+      state: 3,
+      relation: "father",
+    },
+    {
+      phone: "13800000005",
+      parent: "赵妈妈",
+      child: "小赵",
+      gender: 2,
+      birthDate: "2000-06-03",
+      state: 0,
+      relation: "mother",
+    },
   ];
-  const passwordHash = await bcrypt.hash('Pass1234', 12);
-  const cities = await prisma.city.findMany();
-  const occs = await prisma.occupation.findMany();
-  const tags = await prisma.interestTag.findMany();
-
-  const referrers = [];
-  for (const r of referrerSpecs) {
-    const u = await prisma.user.upsert({
-      where: { phone: r.phone },
-      update: { nickname: r.nickname, inviteCode: r.inviteCode, profileStatus: 2 },
-      create: {
-        phone: r.phone,
-        passwordHash,
-        nickname: r.nickname,
-        inviteCode: r.inviteCode,
-        status: 1,
-        profileStatus: 2,
-        gender: r.nickname.includes('哥') ? 1 : 2,
-        age: 30,
-        cityId: cities[0].id,
-        occupationId: occs[0].id,
-      },
-    });
-    referrers.push(u);
-  }
-
-  // 给介绍人补完整资料（兴趣 + 需求）
-  for (const u of referrers) {
-    await prisma.userInterest.deleteMany({ where: { userId: u.id } });
-    await prisma.userInterest.createMany({
-      data: tags.slice(0, 4).map((t) => ({ userId: u.id, interestTagId: t.id })),
-    });
-    await prisma.userRequirement.upsert({
-      where: { userId: u.id },
-      update: {
-        targetGender: u.gender === 1 ? 2 : 1,
-        targetAgeMin: 24,
-        targetAgeMax: 32,
-        selfDesc: '希望认识有趣的你',
-      },
-      create: {
-        userId: u.id,
-        targetGender: u.gender === 1 ? 2 : 1,
-        targetAgeMin: 24,
-        targetAgeMax: 32,
-        selfDesc: '希望认识有趣的你',
-      },
-    });
-  }
-  console.log(`  ✓ Referrers: ${referrers.length} (codes: ${referrers.map(r => r.inviteCode).join(', ')})`);
-
-  // 4) 被介绍人（6 个，分布不同状态）
-  const inviteeSpecs = [
-    { phone: '13800000001', nickname: '小明',  gender: 1, age: 28, refIdx: 0, profileStatus: 2 },
-    { phone: '13800000002', nickname: '小红',  gender: 2, age: 26, refIdx: 0, profileStatus: 2 },
-    { phone: '13800000003', nickname: '阿强',  gender: 1, age: 30, refIdx: 1, profileStatus: 1 }, // pending
-    { phone: '13800000004', nickname: '阿丽',  gender: 2, age: 27, refIdx: 1, profileStatus: 1 }, // pending
-    { phone: '13800000005', nickname: '小伟',  gender: 1, age: 29, refIdx: 2, profileStatus: 3 }, // rejected
-    { phone: '13800000006', nickname: '小芳',  gender: 2, age: 25, refIdx: 2, profileStatus: 2 },
-  ];
-
-  const invitees = [];
-  for (const s of inviteeSpecs) {
-    const u = await prisma.user.upsert({
+  for (const [i, s] of specs.entries()) {
+    const owner = await prisma.user.upsert({
       where: { phone: s.phone },
-      update: {
-        nickname: s.nickname,
-        gender: s.gender,
-        age: s.age,
-        profileStatus: s.profileStatus,
-        referrerId: referrers[s.refIdx].id,
-        status: 1,
-      },
+      update: {},
       create: {
         phone: s.phone,
+        nickname: s.parent,
         passwordHash,
-        nickname: s.nickname,
-        gender: s.gender,
-        age: s.age,
-        profileStatus: s.profileStatus,
-        referrerId: referrers[s.refIdx].id,
-        status: 1,
-        inviteCode: String(200000 + parseInt(s.phone.slice(-4))),
+        inviteCode: String(200001 + i),
+        referrerId: i % 2 === 0 ? referrer.id : null,
       },
     });
-    invitees.push(u);
-  }
-  console.log(`  ✓ Invitees: ${invitees.length}`);
-
-  // 5) 审核通过的：补 interests + requirement
-  for (const u of invitees.filter(i => i.profileStatus === 2)) {
-    await prisma.userInterest.deleteMany({ where: { userId: u.id } });
-    await prisma.userInterest.createMany({
-      data: tags.slice(2, 6).map((t) => ({ userId: u.id, interestTagId: t.id })),
-    });
-    await prisma.userRequirement.upsert({
-      where: { userId: u.id },
-      update: {
-        targetGender: u.gender === 1 ? 2 : 1,
-        targetAgeMin: 24,
-        targetAgeMax: 32,
-        selfDesc: '想找一个三观合的人一起看世界',
+    const draft = {
+      relationship: s.relation,
+      nickname: s.child,
+      gender: s.gender,
+      birthDate: s.birthDate,
+      height: s.gender === 1 ? 178 : 165,
+      cityId: Number(city.id),
+      education: "bachelor",
+      income: "8k_12k",
+      occupation: "软件工程师",
+      maritalStatus: "single",
+      carStatus: "none",
+      traits: ["随和"],
+      advantages: ["工作稳定"],
+      introduction: "希望孩子遇到聊得来、愿意一起经营生活的人",
+      photoOssKeys: [],
+      preference: {
+        birthYearMin: 1993,
+        birthYearMax: 2001,
+        heightMin: 160,
+        heightMax: 185,
+        educationMin: "college",
+        tags: ["品行端正"],
       },
+    };
+    const profile = await prisma.childProfile.upsert({
+      where: { registrationSlot: `primary:${owner.id}` },
+      update: {},
       create: {
-        userId: u.id,
-        targetGender: u.gender === 1 ? 2 : 1,
-        targetAgeMin: 24,
-        targetAgeMax: 32,
-        selfDesc: '想找一个三观合的人一起看世界',
+        ownerAccountId: owner.id,
+        registrationSlot: `primary:${owner.id}`,
+        draft,
+        draftRevision: 1,
+        profileStatus: s.state,
+        submittedRevision: s.state ? 1 : null,
+        approvedRevision: s.state === 2 ? 1 : null,
+        approvedPayload: s.state === 2 ? draft : undefined,
+        consentVersion: s.state ? "2026-10-06" : null,
+        consentAt: s.state ? new Date() : null,
       },
     });
-  }
-
-  // 6) pending 的：插入 user_profiles_pending
-  for (const u of invitees.filter(i => i.profileStatus === 1)) {
-    await prisma.userProfilePending.deleteMany({ where: { userId: u.id, status: 1 } });
-    await prisma.userProfilePending.create({
-      data: {
-        userId: u.id,
-        payloadJson: {
-          nickname: u.nickname,
-          gender: u.gender,
-          age: u.age,
-          cityId: cities[0].id.toString(),
-          height: 165,
-          occupationId: occs[0].id.toString(),
-          avatarOssKey: null,
-          interestTagIds: tags.slice(1, 4).map(t => t.id.toString()),
-          customInterests: ['露营', '剧本杀'],
-          requirement: {
-            targetGender: u.gender === 1 ? 2 : 1,
-            targetAgeMin: 24,
-            targetAgeMax: 32,
-            targetCityId: cities[0].id.toString(),
-            selfDesc: '热爱生活，希望遇到对的人',
-          },
-        },
-        status: 1,
-      },
-    });
-  }
-
-  // 7) rejected 的：插入 user_profiles_pending (status=3)
-  for (const u of invitees.filter(i => i.profileStatus === 3)) {
-    await prisma.userProfilePending.deleteMany({ where: { userId: u.id } });
-    await prisma.userProfilePending.create({
-      data: {
-        userId: u.id,
-        payloadJson: {
-          nickname: u.nickname,
-          gender: u.gender,
-          age: u.age,
-          cityId: cities[0].id.toString(),
-          height: 170,
-          occupationId: occs[0].id.toString(),
-          avatarOssKey: null,
-          interestTagIds: tags.slice(0, 3).map(t => t.id.toString()),
-          customInterests: [],
-          requirement: {
-            targetGender: u.gender === 1 ? 2 : 1,
-            targetAgeMin: 25,
-            targetAgeMax: 35,
-            selfDesc: '性格开朗',
-          },
-        },
-        status: 3,
-        rejectReason: '头像不规范，请重新上传清晰本人照片',
-        reviewedBy: (await prisma.admin.findFirst({ where: { role: 'operator' } }))?.id,
-        reviewedAt: new Date(),
-      },
-    });
-  }
-
-  // 8) 示例牵线记录（2 条）
-  const [m1UserA, m1UserB] = invitees.filter(i => i.profileStatus === 2).slice(0, 2);
-  if (m1UserA && m1UserB) {
-    await prisma.matchRecord.deleteMany({
-      where: {
-        OR: [
-          { userAId: m1UserA.id, userBId: m1UserB.id },
-          { userAId: m1UserB.id, userBId: m1UserA.id },
-        ],
-      },
-    });
-    await prisma.matchRecord.create({
-      data: {
-        userAId: m1UserA.id,
-        userBId: m1UserB.id,
-        referrerId: m1UserA.referrerId!,
-        matchedAt: new Date(Date.now() - 7 * 24 * 3600 * 1000),
-        note: '双方见面后感觉合适，进入深度了解',
-        createdBy: (await prisma.admin.findFirst({ where: { role: 'operator' } }))!.id,
-      },
-    });
-    const invitees2 = invitees.filter(i => i.profileStatus === 2);
-    if (invitees2.length >= 4) {
-      await prisma.matchRecord.create({
+    if (
+      s.state &&
+      (await prisma.userProfilePending.count({
+        where: { profileId: profile.id },
+      })) === 0
+    )
+      await prisma.userProfilePending.create({
         data: {
-          userAId: invitees2[2].id,
-          userBId: invitees2[3].id,
-          referrerId: invitees2[2].referrerId!,
-          matchedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000),
-          note: '第二次约会，准备确定关系',
-          createdBy: (await prisma.admin.findFirst({ where: { role: 'super_admin' } }))!.id,
+          profileId: profile.id,
+          draftRevision: 1,
+          payloadJson: draft,
+          status: s.state,
+          rejectReason: s.state === 3 ? "请补充孩子的职业与个人介绍" : null,
         },
       });
-    }
   }
-
-  // 9) 自定义兴趣示例
-  const firstInv = invitees[0];
-  if (firstInv) {
-    await prisma.userCustomInterest.deleteMany({ where: { userId: firstInv.id } });
-    await prisma.userCustomInterest.create({
-      data: {
-        userId: firstInv.id,
-        tagText: '飞盘',
-        promoted: 0,
-      },
-    });
-  }
-
-  console.log('🌱 Seed completed!');
-  console.log('');
-  console.log('   管理员账号：');
-  console.log('     admin / Admin@123        (super_admin)');
-  console.log('     operator1 / Operator@123 (operator)');
-  console.log('');
-  console.log('   测试介绍人邀请码：');
-  referrers.forEach((r) => {
-    console.log(`     ${r.phone} - ${r.nickname} - 邀请码 ${r.inviteCode}`);
-  });
-  console.log('');
-  console.log('   测试被介绍人：13800000001~13800000006 密码 Pass1234');
+  console.log("Seeded parent accounts and independent child profiles");
 }
-
 main()
   .catch((e) => {
     console.error(e);
-    process.exit(1);
+    process.exitCode = 1;
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());

@@ -4,74 +4,91 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UploadedFile,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBody, ApiConsumes } from '@nestjs/swagger';
-import type { Response } from 'express';
-import { UploadService } from './upload.service';
-import { Public, JwtPayload } from '@/common/decorators';
-
-@ApiTags('upload')
-@Controller('api/v1/upload')
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiTags } from "@nestjs/swagger";
+import type { Response } from "express";
+import { UploadService } from "./upload.service";
+import { Public, JwtPayload, Roles } from "@/common/decorators";
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  Min,
+} from "class-validator";
+class SignUploadDto {
+  @IsString() @MaxLength(255) filename!: string;
+  @IsIn(["image/jpeg", "image/png", "image/webp"]) mimeType!: string;
+  @IsInt() @Min(1) size!: number;
+  @IsIn(["avatar", "lifestyle"]) purpose!: "avatar" | "lifestyle";
+  @IsString() @Matches(/^\d+$/) profileId!: string;
+}
+class CommitUploadDto extends SignUploadDto {
+  @IsString() @MaxLength(255) ossKey!: string;
+  @IsOptional() @IsString() @MaxLength(2000) url?: string;
+}
+@ApiTags("upload")
+@Controller("api/v1/upload")
+@Roles("user")
 export class UploadController {
   constructor(private readonly svc: UploadService) {}
-
-  @Post('sign')
-  @ApiOperation({ summary: '申请 OSS 直传策略' })
-  async sign(
-    @Req() req: { user: JwtPayload },
-    @Body() body: { filename: string; mimeType: string; size: number; purpose?: 'avatar' | 'lifestyle' },
-  ) {
+  @Post("sign")
+  sign(@Req() req: { user: JwtPayload }, @Body() b: SignUploadDto) {
     return this.svc.signUpload(
       BigInt(req.user.sub),
-      body.filename,
-      body.mimeType,
-      body.size,
-      body.purpose ?? 'avatar',
+      b.filename,
+      b.mimeType,
+      b.size,
+      b.purpose,
+      BigInt(b.profileId),
     );
   }
-
-  @Post('commit')
-  @ApiOperation({ summary: '提交上传成功的 OSS key' })
-  async commit(
-    @Req() req: { user: JwtPayload },
-    @Body() body: { ossKey: string; url: string; size: number; mimeType: string; purpose?: 'avatar' | 'lifestyle' },
-  ) {
+  @Post("commit")
+  commit(@Req() req: { user: JwtPayload }, @Body() b: CommitUploadDto) {
     return this.svc.commitUpload(
       BigInt(req.user.sub),
-      body.ossKey,
-      body.url,
-      body.size,
-      body.mimeType,
-      body.purpose ?? 'avatar',
+      b.ossKey,
+      b.url ?? "",
+      b.size,
+      b.mimeType,
+      b.purpose,
+      BigInt(b.profileId),
     );
   }
-
-  /** mock 驱动：本地模拟 PUT 上传（仅 OSS_PROVIDER=mock 时使用） */
-  @Public()
-  @Post('mock-put')
-  @ApiOperation({ summary: 'mock 模式本地直传端点' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        key: { type: 'string' },
-        file: { type: 'string', format: 'binary' },
-      },
-      required: ['key', 'file'],
-    },
-  })
-  @UseInterceptors(FileInterceptor('file'))
-  async mockPut(
+  @Post("mock-put")
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
+  put(
+    @Req() req: { user: JwtPayload },
     @UploadedFile() file: { buffer: Buffer; mimetype: string; size: number },
-    @Body('key') key: string,
+    @Body("key") key: string,
   ) {
-    return this.svc.saveMockUpload(file, key);
+    return this.svc.saveMockUpload(BigInt(req.user.sub), file, key);
   }
-
+  @Public()
+  @Get("mock-file/:purpose/:user/:profile/:month/:filename")
+  async file(
+    @Param() p: Record<string, string>,
+    @Query("expires") expires = "",
+    @Query("signature") signature = "",
+    @Res() res: Response,
+  ) {
+    const file = await this.svc.mockFile(
+      `${p.purpose}/${p.user}/${p.profile}/${p.month}/${p.filename}`,
+      expires,
+      signature,
+    );
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Cache-Control", "private, max-age=300");
+    res.send(file.buffer);
+  }
 }

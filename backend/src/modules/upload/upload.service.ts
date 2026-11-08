@@ -1,174 +1,212 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
-import OSS from 'ali-oss';
-import { PrismaService } from '@/prisma/prisma.service';
-import { BizException } from '@/common/exceptions';
-import { BizCode } from '@/common/constants';
-
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const ALLOWED_EXT = new Set(['jpg', 'jpeg', 'png', 'webp']);
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { randomUUID, createHmac, timingSafeEqual } from "crypto";
+import { readFile, mkdir, writeFile } from "fs/promises";
+import path from "path";
+import OSS from "ali-oss";
+import { PrismaService } from "@/prisma/prisma.service";
+import { BizException } from "@/common/exceptions";
+import { BizCode } from "@/common/constants";
+const MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_SIZE = 5 * 1024 * 1024;
-const MAX_LIFESTYLE_PHOTOS = 9;
-
-type UploadPurpose = 'avatar' | 'lifestyle';
-
+type Purpose = "avatar" | "lifestyle";
 @Injectable()
 export class UploadService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
   ) {}
-
-  /** 生成 OSS 直传签名（mock 模式返回本地 mock-put URL） */
+  private client() {
+    const accessKeyId = this.config.get<string>("OSS_ACCESS_KEY"),
+      accessKeySecret = this.config.get<string>("OSS_SECRET_KEY");
+    if (!accessKeyId || !accessKeySecret)
+      throw new BizException(BizCode.UPLOAD_SIGN_FAILED, "未配置 OSS 凭证");
+    return new OSS({
+      region: this.config.get<string>("OSS_REGION")!,
+      accessKeyId,
+      accessKeySecret,
+      bucket: this.config.get<string>("OSS_BUCKET")!,
+      endpoint: this.config.get<string>("OSS_ENDPOINT")!,
+    });
+  }
+  private checkKey(key: string) {
+    if (
+      !/^(avatar|lifestyle)\/\d+\/\d+\/\d{6}\/[a-f0-9-]+\.(jpg|jpeg|png|webp)$/.test(
+        key,
+      )
+    )
+      throw new BizException(BizCode.BAD_REQUEST, "图片路径无效");
+  }
   async signUpload(
     userId: bigint,
     filename: string,
     mimeType: string,
     size: number,
-    purpose: UploadPurpose = 'avatar',
+    purpose: Purpose = "lifestyle",
+    profileId?: bigint,
   ) {
-    if (!ALLOWED_MIME.has(mimeType)) {
+    if (!MIME.has(mimeType) || !["avatar", "lifestyle"].includes(purpose))
       throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID);
-    }
-    if (size <= 0 || size > MAX_SIZE) {
+    if (!Number.isInteger(size) || size <= 0 || size > MAX_SIZE)
       throw new BizException(BizCode.UPLOAD_FILE_TOO_LARGE);
-    }
-    const ext = (filename.split('.').pop() ?? '').toLowerCase();
-    if (!ALLOWED_EXT.has(ext)) {
+    const ext = filename.split(".").pop()?.toLowerCase();
+    if (!ext || !["jpg", "jpeg", "png", "webp"].includes(ext))
       throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID);
-    }
-
-    // 生活照：限制总张数（1-9）
-    if (purpose === 'lifestyle') {
-      const count = await this.prisma.userPhoto.count({ where: { userId } });
-      if (count >= MAX_LIFESTYLE_PHOTOS) {
-        throw new BizException(BizCode.BAD_REQUEST, `生活照最多 ${MAX_LIFESTYLE_PHOTOS} 张`);
-      }
-    }
-
-    const now = new Date();
-    const yyyymm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const key = `${purpose}/${userId}/${yyyymm}/${uuidv4()}.${ext}`;
-    const provider = this.config.get<string>('OSS_PROVIDER') ?? 'aliyun';
-
-    if (provider === 'mock') {
-      const publicBase = `http://localhost:${this.config.get<string>('PORT') ?? '3000'}`;
-      return {
-        provider: 'mock' as const,
-        key,
-        url: `${publicBase}/api/v1/upload/mock-put`,
-        method: 'POST' as const,
-        headers: { 'Content-Type': mimeType },
-        formData: { key, mimeType, size: String(size) },
-        mockUploadUrl: `${publicBase}/api/v1/upload/mock-put`,
-      };
-    }
-
-    // 阿里云 OSS：生成 PUT 策略签名
-    const bucket = this.config.get<string>('OSS_BUCKET')!;
-    const region = this.config.get<string>('OSS_REGION')!;
-    const accessKeyId = this.config.get<string>('OSS_ACCESS_KEY')!;
-    const accessKeySecret = this.config.get<string>('OSS_SECRET_KEY')!;
-    const endpoint = this.config.get<string>('OSS_ENDPOINT')!;
-    const publicBase = this.config.get<string>('OSS_PUBLIC_BASE')!;
-
-    if (!accessKeyId || !accessKeySecret) {
-      throw new BizException(BizCode.UPLOAD_SIGN_FAILED, '未配置阿里云 OSS 凭证');
-    }
-
-    const client = new OSS({ region, accessKeyId, accessKeySecret, bucket, endpoint });
-    const expires = 60; // 60s 过期
-    const signature = client.signatureUrl(key, {
-      method: 'PUT',
-      expires,
-      'Content-Type': mimeType,
-      'x:oss-content-length-range': `0,${MAX_SIZE}`,
+    const profile = await this.prisma.childProfile.findFirst({
+      where: { id: profileId, ownerAccountId: userId },
     });
-
-    return {
-      provider: 'aliyun' as const,
-      key,
-      url: signature.split('?')[0],
-      method: 'PUT' as const,
-      headers: {
-        'Content-Type': mimeType,
+    if (!profile)
+      throw new BizException(BizCode.PROFILE_NOT_FOUND, "请先保存孩子的资料");
+    const key = `${purpose}/${userId}/${profile.id}/${new Date().toISOString().slice(0, 7).replace("-", "")}/${randomUUID()}.${ext}`;
+    const provider = this.config.get<string>("OSS_PROVIDER") ?? "mock";
+    const uploadUrl =
+      provider === "mock"
+        ? "/api/v1/upload/mock-put"
+        : this.client().signatureUrl(key, {
+            method: "PUT",
+            expires: 60,
+            "Content-Type": mimeType,
+          });
+    await this.prisma.uploadedFile.create({
+      data: {
+        userId,
+        profileId: profile.id,
+        ossKey: key,
+        url: "",
+        size,
+        mimeType,
+        purpose,
       },
-      formData: null,
-      publicUrl: `${publicBase}/${key}`,
-      expiresAt: new Date(Date.now() + expires * 1000).toISOString(),
+    });
+    return {
+      provider,
+      key,
+      method: provider === "mock" ? "POST" : "PUT",
+      url: uploadUrl,
+      mockUploadUrl: uploadUrl,
+      headers: { "Content-Type": mimeType },
+      formData: { key },
+      publicUrl: this.toPublicUrl(key),
     };
   }
-
-  /** 用户提交上传成功后的 OSS key。avatar: 写入 User.avatarOssKey；lifestyle: 写入 UserPhoto 表 */
   async commitUpload(
     userId: bigint,
-    ossKey: string,
-    url: string,
+    key: string,
+    _url: string,
     size: number,
     mimeType: string,
-    purpose: UploadPurpose = 'avatar',
+    purpose: Purpose = "lifestyle",
+    profileId?: bigint,
   ) {
-    if (!ossKey.startsWith(`${purpose}/${userId}/`)) {
-      throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID, '非法 key 前缀');
-    }
-    await this.prisma.uploadedFile.create({
-      data: { userId, ossKey, url, size, mimeType, purpose },
+    this.checkKey(key);
+    const ticket = await this.prisma.uploadedFile.findUnique({
+      where: { ossKey: key },
+      include: { profile: true },
     });
-
-    if (purpose === 'avatar') {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { avatarOssKey: ossKey },
-      });
-      return { ok: true, url, ossKey };
+    if (
+      !ticket ||
+      ticket.userId !== userId ||
+      ticket.profile.ownerAccountId !== userId ||
+      (profileId != null && ticket.profileId !== profileId) ||
+      ticket.size !== size ||
+      ticket.mimeType !== mimeType ||
+      ticket.purpose !== purpose
+    )
+      throw new BizException(
+        BizCode.BAD_REQUEST,
+        "上传记录与当前孩子档案不一致",
+      );
+    if (this.config.get<string>("OSS_PROVIDER") === "mock") {
+      try {
+        const buffer = await readFile(path.join(process.cwd(), "uploads", key));
+        if (buffer.length !== size) throw new Error("size");
+      } catch {
+        throw new BizException(
+          BizCode.UPLOAD_FILE_NOT_FOUND,
+          "图片尚未上传完成",
+        );
+      }
+    } else {
+      const head = await this.client().head(key);
+      if (Number(head.res.headers["content-length"]) !== size)
+        throw new BizException(BizCode.BAD_REQUEST, "图片大小不匹配");
     }
-
-    // lifestyle: 插入 UserPhoto（重复 ossKey 视为幂等成功）
-    const sort = await this.prisma.userPhoto.count({ where: { userId } });
-    const photo = await this.prisma.userPhoto.upsert({
-      where: { userId_ossKey: { userId, ossKey } },
-      update: {},
-      create: { userId, ossKey, url, sort },
+    await this.prisma.uploadedFile.update({
+      where: { ossKey: key },
+      data: { committed: true },
     });
-    return { ok: true, url, ossKey, photoId: String(photo.id) };
+    return {
+      ok: true,
+      ossKey: key,
+      url: this.toPublicUrl(key),
+      profileId: String(ticket.profileId),
+    };
   }
-
-  /** mock 驱动：保存上传的本地文件 */
-  async saveMockUpload(file: { buffer: Buffer; mimetype: string; size: number }, key: string) {
-    if (!ALLOWED_MIME.has(file.mimetype)) {
-      throw new BizException(BizCode.UPLOAD_FILE_TYPE_INVALID);
-    }
-    if (file.size > MAX_SIZE) {
-      throw new BizException(BizCode.UPLOAD_FILE_TOO_LARGE);
-    }
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const localDir = path.join(process.cwd(), 'uploads');
-    const localPath = path.join(localDir, key);
-    await fs.mkdir(path.dirname(localPath), { recursive: true });
-    await fs.writeFile(localPath, file.buffer);
-    return { key, localPath };
+  async saveMockUpload(
+    userId: bigint,
+    file: { buffer: Buffer; mimetype: string; size: number },
+    key: string,
+  ) {
+    if (this.config.get<string>("OSS_PROVIDER") !== "mock")
+      throw new BizException(BizCode.NOT_FOUND);
+    this.checkKey(key);
+    const ticket = await this.prisma.uploadedFile.findUnique({
+      where: { ossKey: key },
+      include: { profile: true },
+    });
+    if (
+      !file ||
+      !ticket ||
+      ticket.userId !== userId ||
+      ticket.profile.ownerAccountId !== userId ||
+      ticket.committed ||
+      ticket.size !== file.size ||
+      ticket.mimeType !== file.mimetype ||
+      file.size > MAX_SIZE
+    )
+      throw new BizException(BizCode.BAD_REQUEST, "上传请求无效");
+    const local = path.join(process.cwd(), "uploads", key);
+    await mkdir(path.dirname(local), { recursive: true });
+    await writeFile(local, file.buffer);
+    return { ok: true };
   }
-
-  /**
-   * 把 OSS key 转为可访问 URL。
-   * - mock 模式：MOCK_BASE_URL（默认 http://localhost:PORT）/api/v1/upload/mock-file/<key>
-   * - aliyun 模式：OSS_PUBLIC_BASE/<key>
-   *
-   * 注意：mock 模式的 URL 前缀必须从配置（MOCK_BASE_URL）读取，不要硬编码 localhost，
-   * 否则部署到非本机环境或反代后所有图片都 404。
-   */
+  private signature(key: string, expires: string) {
+    return createHmac("sha256", this.config.get<string>("JWT_SECRET")!)
+      .update(`${key}:${expires}`)
+      .digest("hex");
+  }
+  async mockFile(key: string, expires: string, signature: string) {
+    this.checkKey(key);
+    const expected = this.signature(key, expires);
+    if (
+      !/^\d+$/.test(expires) ||
+      Number(expires) < Math.floor(Date.now() / 1000) ||
+      Number(expires) > Math.floor(Date.now() / 1000) + 3600 ||
+      !/^[a-f0-9]{64}$/.test(signature) ||
+      !timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+    )
+      throw new BizException(BizCode.FORBIDDEN, "图片链接无效或已过期", 403);
+    if (this.config.get<string>("OSS_PROVIDER") !== "mock")
+      throw new BizException(BizCode.NOT_FOUND);
+    const file = await this.prisma.uploadedFile.findUnique({
+      where: { ossKey: key },
+      select: { committed: true, mimeType: true },
+    });
+    if (!file?.committed) throw new BizException(BizCode.UPLOAD_FILE_NOT_FOUND);
+    return {
+      buffer: await readFile(path.join(process.cwd(), "uploads", key)),
+      mimeType: file.mimeType,
+    };
+  }
   toPublicUrl(key: string | null | undefined): string | null {
     if (!key) return null;
-    const provider = this.config.get<string>('OSS_PROVIDER') ?? 'aliyun';
-    if (provider === 'mock') {
-      const base =
-        this.config.get<string>('MOCK_BASE_URL') ??
-        `http://localhost:${this.config.get<string>('PORT') ?? '3000'}`;
-      return `${base.replace(/\/+$/, '')}/api/v1/upload/mock-file/${key}`;
-    }
-    const publicBase = this.config.get<string>('OSS_PUBLIC_BASE') ?? '';
-    return `${publicBase.replace(/\/+$/, '')}/${key}`;
+    if (this.config.get<string>("OSS_PROVIDER") !== "mock")
+      return this.client().signatureUrl(key, { expires: 3600 });
+    const expires = String(Math.floor(Date.now() / 1000) + 3600);
+    const base = (this.config.get<string>("MOCK_BASE_URL") ?? "").replace(
+      /\/+$/,
+      "",
+    );
+    return `${base}/api/v1/upload/mock-file/${key}?expires=${expires}&signature=${this.signature(key, expires)}`;
   }
 }

@@ -16,6 +16,8 @@ import { AuditModule } from './modules/audit/audit.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { HealthModule } from './modules/health/health.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SocialModule } from './modules/social/social.module';
+import { FeaturesModule } from './modules/features/features.module';
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { AdminModule } from './modules/admin/admin.module';
       },
     ]),
     PrismaModule,
+    FeaturesModule,
     AuthModule,
     UserModule,
     ReferrerModule,
@@ -51,6 +54,7 @@ import { AdminModule } from './modules/admin/admin.module';
     StatsModule,
     HealthModule,
     AdminModule,
+    SocialModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -5,10 +5,10 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { BizCode, BizCodeMessages } from './constants';
-import { BizException } from './exceptions';
+} from "@nestjs/common";
+import { Request, Response } from "express";
+import { BizCode, BizCodeMessages } from "./constants";
+import { BizException } from "./exceptions";
 
 interface RespBody<T = unknown> {
   code: number;
@@ -22,24 +22,27 @@ interface RespBody<T = unknown> {
  */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger('GlobalExceptionFilter');
+  private readonly logger = new Logger("GlobalExceptionFilter");
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
     const requestId =
-      (req.headers['x-request-id'] as string) ||
-      (res.getHeader('x-request-id') as string) ||
-      '';
+      (req.headers["x-request-id"] as string) ||
+      (res.getHeader("x-request-id") as string) ||
+      "";
 
     let code: number = BizCode.INTERNAL_ERROR;
-    let message = '服务内部异常';
+    let message = "服务内部异常";
     let httpStatus: number = HttpStatus.INTERNAL_SERVER_ERROR;
     let data: unknown = null;
 
     if (exception instanceof BizException) {
-      const body = exception.getResponse() as { bizCode: BizCode; message?: string };
+      const body = exception.getResponse() as {
+        bizCode: BizCode;
+        message?: string;
+      };
       code = body.bizCode;
       message = body.message || BizCodeMessages[code] || message;
       httpStatus = exception.getStatus();
@@ -48,10 +51,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         | string
         | { message?: string | string[]; error?: string; statusCode?: number };
       httpStatus = exception.getStatus();
-      if (typeof resp === 'string') {
+      if (typeof resp === "string") {
         message = resp;
       } else if (resp && Array.isArray(resp.message)) {
-        message = resp.message.join('; ');
+        message = resp.message.join("; ");
       } else if (resp?.message) {
         message = String(resp.message);
       }
@@ -59,17 +62,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (httpStatus === HttpStatus.UNAUTHORIZED) code = BizCode.UNAUTHORIZED;
       else if (httpStatus === HttpStatus.FORBIDDEN) code = BizCode.FORBIDDEN;
       else if (httpStatus === HttpStatus.NOT_FOUND) code = BizCode.NOT_FOUND;
-      else if (httpStatus === HttpStatus.TOO_MANY_REQUESTS) code = BizCode.RATE_LIMITED;
-      else if (httpStatus >= 400 && httpStatus < 500) code = BizCode.BAD_REQUEST;
+      else if (httpStatus === HttpStatus.TOO_MANY_REQUESTS)
+        code = BizCode.RATE_LIMITED;
+      else if (httpStatus >= 400 && httpStatus < 500)
+        code = BizCode.BAD_REQUEST;
+      if (!/[\u4e00-\u9fff]/.test(message))
+        message = BizCodeMessages[code] || '请求失败，请稍后重试';
     } else if (exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);
     } else {
-      this.logger.error('Unknown exception', String(exception));
+      this.logger.error("Unknown exception", String(exception));
     }
 
     const body: RespBody = {
       code,
-      message: BizCodeMessages[code] ?? message,
+      message,
       data,
       requestId,
     };

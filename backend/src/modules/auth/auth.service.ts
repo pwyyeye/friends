@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '@/prisma/prisma.service';
-import { BizException } from '@/common/exceptions';
-import { BizCode } from '@/common/constants';
-import { JwtPayload } from '@/common/decorators';
+import { randomUUID } from "crypto";
+import { Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import * as bcrypt from "bcryptjs";
+import { PrismaService } from "@/prisma/prisma.service";
+import { BizException } from "@/common/exceptions";
+import { BizCode } from "@/common/constants";
+import { JwtPayload } from "@/common/decorators";
 
 const BCRYPT_COST = 12;
 
@@ -39,20 +40,20 @@ export class AuthService {
     inviteCode?: string;
     nickname?: string;
   }) {
-    const code = (input.inviteCode ?? '').trim();
+    const code = (input.inviteCode ?? "").trim();
     let referrerId: bigint | null = null;
 
     if (code) {
       // 填了邀请码：必须能命中一个状态正常的介绍人
       const referrer = await this.prisma.user.findUnique({
         where: { inviteCode: code },
-        select: { id: true, status: true },
+        select: { id: true, status: true, cancelStatus: true },
       });
       if (!referrer) {
-        throw new BizException(BizCode.REFERRER_CODE_INVALID, '邀请码无效');
+        throw new BizException(BizCode.REFERRER_CODE_INVALID, "邀请码无效");
       }
-      if (referrer.status !== 1) {
-        throw new BizException(BizCode.USER_DISABLED, '介绍人账号已被禁用');
+      if (referrer.status !== 1 || referrer.cancelStatus !== 0) {
+        throw new BizException(BizCode.USER_DISABLED, "介绍人账号已被禁用");
       }
       referrerId = referrer.id;
     }
@@ -77,12 +78,13 @@ export class AuthService {
         referrerId,
         inviteCode,
         status: 1,
-        profileStatus: 0,
+        termsVersion: "2026-10-06",
+        termsAcceptedAt: new Date(),
       },
       select: { id: true, phone: true, inviteCode: true, referrerId: true },
     });
 
-    return user;
+    return this.userLogin(input.phone, input.password);
   }
 
   async userLogin(phone: string, password: string) {
@@ -92,24 +94,26 @@ export class AuthService {
         id: true,
         passwordHash: true,
         status: true,
+        authVersion: true,
         cancelStatus: true,
         nickname: true,
         phone: true,
         inviteCode: true,
         avatarOssKey: true,
-        profileStatus: true,
       },
     });
     if (!user) throw new BizException(BizCode.USER_INVALID_PASSWORD);
-    if (user.cancelStatus === 1) throw new BizException(BizCode.USER_CANCELING);
+    if (user.cancelStatus !== 0) throw new BizException(BizCode.USER_CANCELING);
     if (user.status !== 1) throw new BizException(BizCode.USER_DISABLED);
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    const ok =
+      user.passwordHash && (await bcrypt.compare(password, user.passwordHash));
     if (!ok) throw new BizException(BizCode.USER_INVALID_PASSWORD);
 
     const token = await this.signToken({
       sub: String(user.id),
-      role: 'user',
+      role: "user",
+      authVersion: user.authVersion,
     });
 
     return {
@@ -120,7 +124,6 @@ export class AuthService {
         nickname: user.nickname,
         inviteCode: user.inviteCode,
         avatarOssKey: user.avatarOssKey,
-        profileStatus: user.profileStatus,
       },
     };
   }
@@ -149,7 +152,7 @@ export class AuthService {
 
     const token = await this.signToken({
       sub: String(admin.id),
-      role: admin.role as 'super_admin' | 'operator',
+      role: admin.role as "super_admin" | "operator",
     });
 
     return {
@@ -162,14 +165,11 @@ export class AuthService {
     };
   }
 
-  async logout(jti: string, userId?: string, adminId?: string) {
+  async logout(jti: string, userId?: string, adminId?: string, exp?: number) {
     if (!jti) return;
-    const payload = await this.jwtService.verifyAsync<JwtPayload>(jti, {
-      ignoreExpiration: true,
-    }).catch(() => null);
-    const expiresAt = payload?.exp
-      ? new Date(payload.exp * 1000)
-      : new Date(Date.now() + 7 * 24 * 3600 * 1000);
+    const expiresAt = new Date(
+      (exp ?? Math.floor(Date.now() / 1000) + 7 * 86400) * 1000,
+    );
     await this.prisma.tokenBlacklist.upsert({
       where: { jti },
       update: {},
@@ -182,9 +182,14 @@ export class AuthService {
     });
   }
 
-  private async signToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): Promise<string> {
+  private async signToken(
+    payload: Omit<JwtPayload, "iat" | "exp">,
+  ): Promise<string> {
     // secret/expiresIn 由 app.module 中全局注册的 JwtModule 注入,
     // 不在这里重复传 secret,避免双实例导致签发/校验 secret 不一致
-    return this.jwtService.signAsync(payload);
+    return this.jwtService.signAsync(
+      { ...payload, jti: randomUUID() },
+      { audience: "friends-parent-v1" },
+    );
   }
 }

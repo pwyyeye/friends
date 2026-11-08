@@ -1,38 +1,33 @@
 /* ============================================================
- * Friends · 牵线交友 · H5 主题
- * 风格：暖色、衬线、克制层级，强调"温度 / 信赖 / 关系"
- * 字体：英文 Playfair Display (serif title) + Inter (UI)
- *       中文 Noto Serif SC (serif title) + Noto Sans SC (UI)
+ * Friends · 父母相亲登记 · H5 主题
+ * 参考设计：粉白背景、珊瑚红操作、大字与人物卡片
  * ============================================================ */
-
-/* Google Fonts: 标题用 Playfair Display + Noto Serif SC，UI 用 Inter + Noto Sans SC */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap');
 
 :root {
   /* —— 颜色 · 品牌 ———————————————————————————————————— */
-  --color-primary:        #3a1028; /* 深酒红：主按钮、标题色 */
-  --color-primary-soft:   #5a2540;
-  --color-primary-deep:   #240915;
-  --color-accent:         #d97706; /* 暖橘：品牌辅色 / 强调点 */
-  --color-accent-soft:    #fcd9a4;
+  --color-primary:        #ff5266;
+  --color-primary-soft:   #fff0f3;
+  --color-primary-deep:   #be2341;
+  --color-accent:         #f34b72;
+  --color-accent-soft:    #ffdce5;
 
   /* —— 颜色 · 中性 / 文本 ——————————————————————————————— */
-  --color-text-primary:   #1f1410;
-  --color-text-regular:   #4a3b30;
-  --color-text-secondary: #7c6a5d;
-  --color-text-muted:     #a99987;
+  --color-text-primary:   #232323;
+  --color-text-regular:   #454545;
+  --color-text-secondary: #656565;
+  --color-text-muted:     #767676;
 
   /* —— 颜色 · 背景 ——————————————————————————————————————— */
-  --color-bg-page:    #fbf6ee; /* 全局暖米色背景 */
+  --color-bg-page:    #f6f6f7;
   --color-bg-card:    #ffffff;
-  --color-bg-section: #f6efe2; /* 浅米色，小节底色 */
-  --color-bg-elev:    #fffaf0; /* 抬升的卡片背景 */
-  --color-bg-overlay: rgba(31, 20, 16, 0.45);
+  --color-bg-section: #fff0f3;
+  --color-bg-elev:    #fafafa;
+  --color-bg-overlay: rgba(25, 25, 25, 0.45);
 
   /* —— 颜色 · 边框 ——————————————————————————————————————— */
-  --color-border:        #e9dfca;
-  --color-border-light:  #f1e8d5;
-  --color-border-strong: #d8c8a8;
+  --color-border:        #e5e5e7;
+  --color-border-light:  #efeff1;
+  --color-border-strong: #b8b8bd;
 
   /* —— 颜色 · 语义 ——————————————————————————————————————— */
   --color-success: #0f7a4a;
@@ -62,10 +57,10 @@
   --font-size-5xl:  48px;
 
   /* —— 字体栈 ——————————————————————————————————————————————— */
-  --font-serif-en: 'Playfair Display', 'Noto Serif SC', Georgia, 'Times New Roman', serif;
-  --font-serif-cn: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
-  --font-sans-en:  'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans-cn:  'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-serif-en: var(--font-sans-en);
+  --font-serif-cn: var(--font-sans-cn);
+  --font-sans-en:  'PingFang SC', 'Helvetica Neue', sans-serif;
+  --font-sans-cn:  'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --font-mono:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   /* —— 圆角 ——————————————————————————————————————————————— */
@@ -77,10 +72,10 @@
   --radius-pill: 999px;
 
   /* —— 阴影（暖色低饱和） ————————————————————————————————— */
-  --shadow-xs: 0 1px 2px rgba(58, 16, 40, 0.04);
-  --shadow-sm: 0 2px 6px rgba(58, 16, 40, 0.06), 0 1px 2px rgba(58, 16, 40, 0.04);
-  --shadow-md: 0 8px 24px rgba(58, 16, 40, 0.08), 0 2px 6px rgba(58, 16, 40, 0.04);
-  --shadow-lg: 0 16px 40px rgba(58, 16, 40, 0.10), 0 4px 12px rgba(58, 16, 40, 0.05);
+  --shadow-xs: 0 1px 2px rgba(28, 28, 34, 0.03);
+  --shadow-sm: 0 3px 12px rgba(28, 28, 34, 0.04);
+  --shadow-md: 0 8px 24px rgba(245, 78, 110, 0.08);
+  --shadow-lg: 0 16px 40px rgba(245, 78, 110, 0.10);
 
   /* —— 安全区 ——————————————————————————————————————————————— */
   --safe-area-top:    env(safe-area-inset-top);
@@ -103,7 +98,7 @@
   --van-nav-bar-title-text-color: var(--color-text-primary);
   --van-nav-bar-icon-color:      var(--color-text-primary);
   --van-nav-bar-text-color:      var(--color-text-primary);
-  --van-nav-bar-height:          48px;
+  --van-nav-bar-height:          56px;
   --van-tag-primary-color:       var(--color-primary);
   --van-tabbar-item-active-color: var(--color-primary);
   --van-tabbar-item-text-color:  var(--color-text-secondary);
@@ -124,7 +119,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-a { color: var(--color-primary); text-decoration: none; }
+a { color: var(--color-primary-deep); text-decoration: none; }
 
 /* —— 通用工具类 ———————————————————————————————————————————— */
 .muted    { color: var(--color-text-secondary); }
@@ -222,7 +217,7 @@ a { color: var(--color-primary); text-decoration: none; }
 /* —— Vant Field：让 label 区窄而优雅 ——————————————————————— */
 .van-field__label { width: 5.5em; color: var(--color-text-regular); }
 
-/* —— Vant Toast：fixed 定位 + 暖色调轻提示（避免硬黑底破坏品牌温度） —————— */
+/* —— Vant Toast：固定定位的轻提示 ————————————————————— */
 .van-toast {
   position: fixed;
   top: 18%;
@@ -252,11 +247,11 @@ a { color: var(--color-primary); text-decoration: none; }
 .van-toast.van-toast--top { top: 14%; }
 .van-toast.van-toast--bottom { top: auto; bottom: 18%; transform: translate(-50%, 0); }
 
-/* —— 失败提示：左侧加酒红警示条 —— */
+/* —— 失败提示 —— */
 .van-toast.van-toast--fail {
-  background: linear-gradient(180deg, #fbe9d8 0%, #f6dfb6 100%);
-  border-color: #e6b888;
-  color: #6b3d05;
+  background: #fff0f3;
+  border-color: #f2a1b0;
+  color: #a92240;
 }
 .van-toast.van-toast--fail::before {
   content: '';
@@ -271,7 +266,7 @@ a { color: var(--color-primary); text-decoration: none; }
   font-size: 20px;
 }
 
-/* —— 成功提示：左侧加暖橘色勾 —— */
+/* —— 成功提示 —— */
 .van-toast.van-toast--success {
   background: linear-gradient(180deg, #e6f3eb 0%, #cfe8d8 100%);
   border-color: #9bc6ad;
@@ -322,17 +317,17 @@ a { color: var(--color-primary); text-decoration: none; }
 .app-toast {
   max-width: 240px;
   padding: 12px 18px;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.5;
   border-radius: 14px;
-  background: #fff7ed; /* 暖白底：与项目 accent 米色系呼应 */
-  border: 1px solid rgba(180, 83, 9, 0.18);
+  background: #fff0f3;
+  border: 1px solid rgba(243, 75, 114, 0.2);
   box-shadow: 0 6px 24px rgba(31, 20, 16, 0.12);
 }
 /* 文字型（toast()）：无图标 */
 .app-toast--text .van-toast__text,
 .app-toast--fail .van-toast__text {
-  color: rgb(107, 61, 5); /* 暖棕：与项目 accent 系色一致 */
+  color: var(--color-primary-deep);
 }
 /* fail 字色加重，错误反馈够明显 */
 .app-toast--fail .van-toast__text {
@@ -344,7 +339,7 @@ a { color: var(--color-primary); text-decoration: none; }
 /* ============================================================
  * 用户端 Toast 微调
  * —— 关闭 fail 默认的红 X 图标（用户反馈顶部叹号多余），改为纯文字条；
- *    背景已由前一块改为暖白底，文字色由 --text/--fail 接管。
+ *    背景与登记页的粉白配色保持一致。
  * ============================================================ */
 .app-toast {
   min-width: 0;
@@ -354,3 +349,131 @@ a { color: var(--color-primary); text-decoration: none; }
   box-shadow: 0 8px 24px rgba(31, 20, 16, 0.18);
 }
 .app-toast .van-toast__text { margin-top: 0; }
+
+/* Parent-facing forms share the reference design and large touch targets. */
+.parent-page { width:min(100%,660px); margin:0 auto; padding:24px; font-size:20px; line-height:1.65; }
+.registration-page { min-height:100dvh; padding-top:12px; padding-bottom:48px; background:linear-gradient(180deg,#fff2f6 0,#f6f6f7 360px); }
+.parent-hero { margin:12px 0 28px; padding:10px 0; }
+.parent-hero h1 { font-family:var(--font-sans-cn); font-size:clamp(28px,5vw,36px); line-height:1.5; margin:16px 0; font-weight:800; }
+.parent-hero.compact h1 { font-size:30px; }
+.eyebrow { font-size:18px; color:var(--color-primary-deep); }
+.step-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+.step-heading h2 { font-size:24px; font-weight:700; margin:0; }
+.step-heading > span { font-size:18px; color:var(--color-primary-deep); }
+.form-field { display:block; margin:20px 0; border:0; padding:0; min-width:0; font-weight:600; }
+.form-field > input,.form-field > select,.form-field > textarea,.form-field select { display:block; width:100%; min-height:60px; min-width:0; padding:12px 14px; margin-top:10px; border:1px solid var(--color-border-strong); border-radius:12px; background:#fff; color:var(--color-text-primary); font:inherit; font-weight:400; }
+.parent-page input::placeholder,.parent-page textarea::placeholder { color:var(--color-text-muted); opacity:1; }
+.parent-page .text-sm,.parent-page small { font-size:18px; font-weight:400; }
+.parent-page .section-title,.parent-page .section-title--sm { font-size:24px; font-weight:700; }
+.layout__nav { --van-nav-bar-title-font-size:22px; }
+.layout__nav .van-nav-bar__title { font-weight:700; }
+.form-field small { display:block; margin-top:6px; }
+.form-field textarea { resize:vertical; }
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus { outline:2px solid var(--color-primary-deep); outline-offset:2px; }
+.form-field select { appearance:none; padding-right:48px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23656565' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 18px center / 20px no-repeat; }
+.date-select { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:68px; margin-top:10px; padding:14px 18px; border:1px solid var(--color-border-strong); border-radius:12px; background:#fff; color:var(--color-text-primary); font:inherit; font-weight:400; text-align:left; cursor:pointer; }
+.select-chevron { width:10px; height:10px; flex-shrink:0; margin:0 4px 5px 0; border-right:2px solid #656565; border-bottom:2px solid #656565; transform:rotate(45deg); }
+.birth-date-popup { --van-picker-option-font-size:24px; --van-picker-toolbar-height:72px; --van-picker-action-font-size:22px; --van-picker-title-font-size:22px; --van-picker-confirm-action-color:var(--color-primary-deep); padding-bottom:env(safe-area-inset-bottom); }
+.birthday-help { margin:20px 20px 0; text-align:center; font-size:18px; color:var(--color-text-secondary); }
+.birth-date-popup .van-picker__cancel,.birth-date-popup .van-picker__confirm { min-width:80px; min-height:64px; }
+.date-select:focus-visible { outline:3px solid var(--color-primary-deep); outline-offset:3px; }
+.field-grid,.summary-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.field-grid .form-field { margin:10px 0; }
+.primary-button,.secondary-button { display:block; width:100%; min-height:60px; padding:12px 16px; border:1px solid transparent; border-radius:999px; font:inherit; cursor:pointer; }
+.primary-button { background:var(--color-primary); color:#fff; font-weight:700; font-size:22px; }
+.secondary-button { background:#fff; color:var(--color-primary-deep); border-color:#f2a1b0; margin-top:12px; }
+button:disabled { opacity:.55; cursor:wait; }
+.text-button { background:none; color:var(--color-primary-deep); border:0; min-height:48px; padding:10px 0; font:inherit; cursor:pointer; text-decoration:underline; }
+.choice-row { display:flex; gap:12px; margin-top:10px; }
+.choice-row button,.tag-choices button { background:#f7f7f8; border:2px solid transparent; border-radius:12px; min-height:60px; padding:12px 18px; font:inherit; cursor:pointer; }
+.choice-row button { flex:1; }
+.choice-row .selected,.tag-choices .selected { background:#fff0f3; border-color:var(--color-primary); color:var(--color-primary-deep); }
+.tag-choices { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; }
+.tag-choices button { font-size:20px; }
+.consent-row { display:flex; align-items:flex-start; gap:12px; margin:24px 0; padding:8px 0; font-size:20px; cursor:pointer; }
+.consent-row input { width:28px; height:28px; flex-shrink:0; accent-color:var(--color-primary-deep); margin:3px 0; }
+.consent-row a { text-decoration:underline; }
+.form-error { color:var(--color-danger); white-space:pre-wrap; overflow-wrap:anywhere; }
+.save-status { color:var(--color-text-secondary); font-size:18px; }
+.action-row { display:grid; grid-template-columns:1fr 1.5fr; gap:12px; }
+.action-row .secondary-button { margin:0; }
+.summary-grid > div { border-bottom:1px solid var(--color-border-light); padding:10px 0; overflow-wrap:anywhere; }
+.summary-grid span,.summary-grid strong { display:block; }
+.summary-grid strong { font-weight:600; margin-top:4px; }
+.preserve-lines { white-space:pre-wrap; overflow-wrap:anywhere; }
+.photo-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.photo-grid img { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:12px; cursor:pointer; }
+.upload-button { display:block; padding:18px; border:1px dashed var(--color-primary-deep); text-align:center; border-radius:16px; cursor:pointer; margin:12px 0; background:#fff5f7; color:var(--color-primary-deep); }
+.upload-button input { display:none; }
+.invite-url { overflow-wrap:anywhere; font-size:18px; }
+.invite-qr { display:block; width:min(260px,100%); margin:16px auto; }
+.account-links { display:flex; flex-wrap:wrap; gap:16px; align-items:center; margin-top:20px; }
+.status-card { border-left:4px solid var(--color-primary); }
+
+/* The initial screen is a pair of illustrated actions, without a surrounding form card. */
+.registration-header { display:grid; grid-template-columns:48px minmax(0,1fr) 48px; align-items:center; gap:12px; min-height:56px; margin:0 0 28px; }
+.registration-header h1 { font-size:24px; font-weight:800; line-height:1.4; text-align:center; margin:0; }
+.registration-back { display:grid; place-items:center; width:48px; height:48px; padding:0; border:1px solid #eeeeef; border-radius:50%; color:#232323; background:rgba(255,255,255,.72); cursor:pointer; }
+.registration-back svg { width:26px; height:26px; }
+.registration-header-spacer { width:48px; }
+.registration-banner { margin:0 -24px 28px; padding:28px 24px 42px; min-height:158px; background:url('/images/registration/hearts.svg') right -22px top -8px / 280px auto no-repeat; color:#451923; }
+.registration-banner-title { position:relative; z-index:1; margin:0; font-size:clamp(26px,7.5vw,36px); font-weight:800; line-height:1.65; white-space:nowrap; }
+.registration-banner-title em { color:#f74771; font-style:italic; font-size:1.12em; margin:0 2px; }
+.registration-banner-subtitle { position:relative; margin:8px 0 0; font-size:clamp(24px,6.5vw,30px); font-weight:700; line-height:1.5; }
+.registration-intro { margin:0 0 20px; }
+.registration-intro h1 { font-size:30px; font-weight:800; line-height:1.5; margin:12px 0; }
+.question-card { padding:24px; border:0; border-radius:26px; box-shadow:var(--shadow-sm); }
+.question-progress { display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; font-size:18px; color:var(--color-text-secondary); }
+.question-card progress { display:block; width:100%; height:8px; border:0; border-radius:8px; overflow:hidden; margin:16px 0 28px; background:#f4e6ea; accent-color:var(--color-primary); }
+.question-card progress::-webkit-progress-bar { background:#f4e6ea; border-radius:8px; }
+.question-card progress::-webkit-progress-value { background:var(--color-primary); border-radius:8px; }
+.question-card progress::-moz-progress-bar { background:var(--color-primary); border-radius:8px; }
+.question-title { font-size:30px; font-weight:800; line-height:1.5; margin:0 0 20px; overflow-wrap:anywhere; }
+.question-title:focus { outline:none; }
+.question-hint { font-size:18px; color:var(--color-text-secondary); margin:0 0 24px; }
+.optional-note { font-size:18px; color:var(--color-text-secondary); margin:0 0 24px; }
+.question-content { border:0; min-width:0; margin:0; padding:0; }
+.large-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.large-choices button { position:relative; display:flex; align-items:center; justify-content:space-between; gap:6px; min-height:68px; border:2px solid transparent; border-radius:14px; background:#f5f5f7; color:var(--color-text-primary); font:inherit; font-weight:600; padding:14px 12px; text-align:center; cursor:pointer; }
+.large-choices button > span:first-child { flex:1; }
+.large-choices .selected,.directory-links .selected { background:#fff0f3; border-color:var(--color-primary); color:var(--color-primary-deep); }
+.large-choices button:focus-visible,.directory-links button:focus-visible,.question-actions button:focus-visible,.registration-back:focus-visible { outline:3px solid var(--color-primary-deep); outline-offset:3px; }
+.choice-tick { position:absolute; top:4px; right:6px; font-size:18px; line-height:1; }
+.selection-count { grid-column:1 / -1; margin:0 0 4px; font-size:18px; }
+.tag-options .refresh-tags { grid-column:1 / -1; justify-self:end; min-height:48px; padding:4px 12px; color:var(--color-primary-deep); background:transparent; font-size:18px; font-weight:500; }
+.range-question .form-field { margin:16px 0; }
+.question-actions { margin-top:28px; }
+.question-actions > .primary-button { min-height:64px; font-size:22px; font-weight:700; }
+.question-secondary-actions { display:flex; gap:12px; margin-top:12px; }
+.question-secondary-actions > .secondary-button { flex:1; margin:0; padding:12px 8px; }
+.skip-button { display:block; width:100%; min-height:56px; margin-top:12px; }
+.step-directory { margin:0 0 16px; }
+.step-directory > .text-button { font-size:18px; }
+.directory-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:8px 0 20px; }
+.directory-links button { border:2px solid transparent; border-radius:14px; background:#fff; color:var(--color-text-primary); min-height:68px; padding:12px; font:inherit; font-size:18px; text-align:left; cursor:pointer; }
+.directory-links button span { display:block; font-size:16px; }
+.step-page .field-grid { grid-template-columns:1fr; }
+.gender-question { padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; }
+.gender-question .question-title { font-size:clamp(28px,7.9vw,40px); font-weight:800; line-height:1.5; margin-bottom:28px; }
+.gender-question .form-error { margin-top:20px; }
+.registration-page > .text-center { margin:32px 0 0; font-size:18px; color:var(--color-text-secondary); }
+.registration-page > .text-center a { font-weight:600; }
+@media(max-width:420px) {
+  .parent-page { padding-right:24px; padding-left:24px; }
+  .question-card { padding:24px 20px; }
+  .gender-question { padding:0; }
+  .question-title { font-size:28px; }
+  .parent-page .summary-grid { grid-template-columns:1fr; }
+}
+@media(max-width:350px) {
+  .parent-page { padding-right:18px; padding-left:18px; }
+  .registration-banner { margin-right:-18px; margin-left:-18px; padding-right:18px; padding-left:18px; }
+  .registration-header { gap:8px; }
+  .question-card { padding:24px 18px; }
+  .gender-question { padding:0; }
+  .large-choices,.directory-links { grid-template-columns:1fr; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  .parent-hero { animation:parent-reveal .4s ease-out both; }
+  @keyframes parent-reveal { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+}

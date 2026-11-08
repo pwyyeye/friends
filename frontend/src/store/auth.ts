@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
 
 interface UserInfo {
   id: string;
@@ -6,16 +6,16 @@ interface UserInfo {
   nickname: string | null;
   inviteCode: string | null;
   avatarOssKey: string | null;
-  profileStatus: number;
+  isReferrer?: boolean;
 }
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: localStorage.getItem('user_token') || '',
+    token: localStorage.getItem("user_token") || "",
     user: (() => {
       try {
-        const raw = localStorage.getItem('user_info');
-        return raw ? JSON.parse(raw) as UserInfo : null;
+        const raw = localStorage.getItem("user_info");
+        return raw ? (JSON.parse(raw) as UserInfo) : null;
       } catch {
         return null;
       }
@@ -25,20 +25,14 @@ export const useAuthStore = defineStore('auth', {
     setAuth(token: string, user: UserInfo) {
       this.token = token;
       this.user = user;
-      localStorage.setItem('user_token', token);
-      localStorage.setItem('user_info', JSON.stringify(user));
-    },
-    updateProfileStatus(status: number) {
-      if (this.user) {
-        this.user.profileStatus = status;
-        localStorage.setItem('user_info', JSON.stringify(this.user));
-      }
+      localStorage.setItem("user_token", token);
+      localStorage.setItem("user_info", JSON.stringify(user));
     },
     logout() {
-      this.token = '';
+      this.token = "";
       this.user = null;
-      localStorage.removeItem('user_token');
-      localStorage.removeItem('user_info');
+      localStorage.removeItem("user_token");
+      localStorage.removeItem("user_info");
     },
   },
 });

@@ -3,20 +3,31 @@
     <!-- 顶部欢迎条 -->
     <div class="hero">
       <div class="hero-left">
-        <div class="hero-title">{{ greeting }}，{{ auth.admin?.username || '管理员' }}</div>
+        <div class="hero-title">
+          {{ greeting }}，{{ auth.admin?.username || '管理员' }}
+        </div>
         <div class="hero-sub">{{ todayText }} · 今天又是高效的一天 🎯</div>
       </div>
       <div class="hero-actions">
-        <el-button type="primary" :icon="Plus" @click="$router.push('/profiles')">去审核资料</el-button>
-        <el-button :icon="User" @click="$router.push('/users')">查看用户</el-button>
+        <el-button
+          type="primary"
+          :icon="Plus"
+          @click="$router.push('/profiles')"
+          >去审核资料</el-button
+        >
+        <el-button :icon="User" @click="$router.push('/users')"
+          >查看父母账号</el-button
+        >
       </div>
     </div>
 
     <!-- KPI 卡片 -->
     <el-row :gutter="16" class="kpi-row">
-      <el-col :xs="24" :sm="12" :md="6" v-for="kpi in kpis" :key="kpi.key">
+      <el-col :xs="24" :sm="12" :md="8" v-for="kpi in kpis" :key="kpi.key">
         <div class="kpi-card" :class="`tone-${kpi.tone}`">
-          <div class="kpi-icon"><el-icon><component :is="kpi.icon" /></el-icon></div>
+          <div class="kpi-icon">
+            <el-icon><component :is="kpi.icon" /></el-icon>
+          </div>
           <div class="kpi-body">
             <div class="kpi-label">{{ kpi.label }}</div>
             <div class="kpi-value tabular">{{ kpi.value }}</div>
@@ -39,19 +50,31 @@
           </template>
           <div class="metric-grid">
             <div class="metric">
-              <div class="metric-label">新增用户</div>
-              <div class="metric-value tabular">{{ data?.newUsers7d ?? '-' }}</div>
-              <div class="metric-bar"><span :style="{ width: userBarWidth }"></span></div>
+              <div class="metric-label">新增父母账号</div>
+              <div class="metric-value tabular">
+                {{ data?.newUsers7d ?? '-' }}
+              </div>
+              <div class="metric-bar">
+                <span :style="{ width: userBarWidth }"></span>
+              </div>
             </div>
             <div class="metric">
               <div class="metric-label">新增牵线</div>
-              <div class="metric-value tabular">{{ data?.newMatches7d ?? '-' }}</div>
-              <div class="metric-bar match"><span :style="{ width: matchBarWidth }"></span></div>
+              <div class="metric-value tabular">
+                {{ data?.newMatches7d ?? '-' }}
+              </div>
+              <div class="metric-bar match">
+                <span :style="{ width: matchBarWidth }"></span>
+              </div>
             </div>
             <div class="metric">
               <div class="metric-label">注销中账号</div>
-              <div class="metric-value tabular">{{ data?.cancelCount ?? '-' }}</div>
-              <div class="metric-bar warn"><span :style="{ width: cancelBarWidth }"></span></div>
+              <div class="metric-value tabular">
+                {{ data?.cancelCount ?? '-' }}
+              </div>
+              <div class="metric-bar warn">
+                <span :style="{ width: cancelBarWidth }"></span>
+              </div>
             </div>
           </div>
         </el-card>
@@ -69,24 +92,38 @@
           </template>
           <div class="health-list">
             <div class="health-item">
-              <div class="dot" :class="dotClass(health?.checks?.mysql?.status)"></div>
+              <div
+                class="dot"
+                :class="dotClass(health?.checks?.mysql?.status)"
+              ></div>
               <span class="health-name">MySQL</span>
-              <span class="health-meta tabular">{{ health?.checks?.mysql?.latencyMs ?? '-' }} ms</span>
+              <span class="health-meta tabular"
+                >{{ health?.checks?.mysql?.latencyMs ?? '-' }} ms</span
+              >
             </div>
             <div class="health-item">
-              <div class="dot" :class="dotClass(health?.checks?.oss?.status)"></div>
+              <div
+                class="dot"
+                :class="dotClass(health?.checks?.oss?.status)"
+              ></div>
               <span class="health-name">OSS</span>
-              <span class="health-meta">{{ health?.checks?.oss?.note || '-' }}</span>
+              <span class="health-meta">{{
+                health?.checks?.oss?.note || '-'
+              }}</span>
             </div>
             <div class="health-item">
               <div class="dot tone-success"></div>
               <span class="health-name">运行时长</span>
-              <span class="health-meta tabular">{{ Math.floor((health?.uptime ?? 0) / 60) }} 分钟</span>
+              <span class="health-meta tabular"
+                >{{ Math.floor((health?.uptime ?? 0) / 60) }} 分钟</span
+              >
             </div>
             <div class="health-item">
               <div class="dot tone-info"></div>
               <span class="health-name">版本</span>
-              <span class="health-meta tabular">{{ health?.version ?? '-' }}</span>
+              <span class="health-meta tabular">{{
+                health?.version ?? '-'
+              }}</span>
             </div>
           </div>
         </el-card>
@@ -109,7 +146,9 @@
           :class="`tone-${s.tone}`"
           @click="$router.push(s.path)"
         >
-          <div class="shortcut-icon"><el-icon><component :is="s.icon" /></el-icon></div>
+          <div class="shortcut-icon">
+            <el-icon><component :is="s.icon" /></el-icon>
+          </div>
           <div class="shortcut-name">{{ s.title }}</div>
           <div class="shortcut-desc">{{ s.desc }}</div>
         </div>
@@ -121,7 +160,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import dayjs from 'dayjs';
-import { Plus, User, DataAnalysis, UserFilled, Document, Connection, Tickets } from '@element-plus/icons-vue';
+import {
+  Plus,
+  User,
+  DataAnalysis,
+  UserFilled,
+  Document,
+  Connection,
+  Tickets,
+} from '@element-plus/icons-vue';
 import { get } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 
@@ -154,14 +201,54 @@ const greeting = computed(() => {
 const todayText = computed(() => dayjs().format('YYYY年M月D日 dddd'));
 
 const kpis = computed(() => [
-  { key: 'users',    label: '总用户数',  value: data.value?.totalUsers ?? '-',     sub: `其中介绍人 ${data.value?.totalReferrers ?? 0} 人`, icon: UserFilled,    tone: 'primary' },
-  { key: 'matches',  label: '总牵线数',  value: data.value?.totalMatches ?? '-',   sub: '累计成功撮合',                                       icon: Connection,    tone: 'success' },
-  { key: 'pending',  label: '待审核资料', value: data.value?.pendingProfiles ?? '-', sub: '需处理',                                              icon: Document,      tone: 'warning' },
-  { key: 'growth',   label: '近 30 日新增', value: data.value?.newUsers30d ?? '-', sub: `新牵线 ${data.value?.newMatches30d ?? 0} 条`,          icon: DataAnalysis,  tone: 'info' },
+  {
+    key: 'users',
+    label: '父母账号数',
+    value: data.value?.totalParents ?? '-',
+    sub: `注册账号 ${data.value?.totalUsers ?? 0} 个，介绍人 ${data.value?.totalReferrers ?? 0} 人`,
+    icon: UserFilled,
+    tone: 'primary',
+  },
+  {
+    key: 'children',
+    label: '孩子档案数',
+    value: data.value?.totalProfiles ?? '-',
+    sub: `审核通过 ${data.value?.approvedProfiles ?? 0} 份`,
+    icon: Document,
+    tone: 'info',
+  },
+  {
+    key: 'matches',
+    label: '总牵线数',
+    value: data.value?.totalMatches ?? '-',
+    sub: '累计人工牵线记录',
+    icon: Connection,
+    tone: 'success',
+  },
+  {
+    key: 'pending',
+    label: '待审核资料',
+    value: data.value?.pendingProfiles ?? '-',
+    sub: '需处理',
+    icon: Document,
+    tone: 'warning',
+  },
+  {
+    key: 'growth',
+    label: '近 30 日新增',
+    value: data.value?.newUsers30d ?? '-',
+    sub: `新牵线 ${data.value?.newMatches30d ?? 0} 条`,
+    icon: DataAnalysis,
+    tone: 'info',
+  },
 ]);
 
-const userBarWidth   = computed(() => pctBar(data.value?.newUsers7d,  data.value?.newUsers30d));
-const matchBarWidth  = computed(() => pctBar(data.value?.newMatches7d, data.value?.newMatches30d));
+const userBarWidth = computed(() =>
+  pctBar(data.value?.newUsers7d, data.value?.newUsers30d),
+);
+const matchBarWidth = computed(() =>
+  pctBar(data.value?.newMatches7d, data.value?.newMatches30d),
+);
 const cancelBarWidth = computed(() => {
   const c = data.value?.cancelCount ?? 0;
   const t = data.value?.totalUsers ?? 1;
@@ -178,7 +265,9 @@ const healthOk = computed(() => {
   const o = health.value?.checks?.oss?.status;
   return m === 'ok' && (o === 'ok' || o === 'skip');
 });
-const overallHealth = computed<'success' | 'danger'>(() => (healthOk.value ? 'success' : 'danger'));
+const overallHealth = computed<'success' | 'danger'>(() =>
+  healthOk.value ? 'success' : 'danger',
+);
 
 function dotClass(s?: string): string {
   if (s === 'ok') return 'tone-success';
@@ -188,10 +277,34 @@ function dotClass(s?: string): string {
 }
 
 const shortcuts = [
-  { path: '/users',     title: '用户管理',  icon: User,        tone: 'info',    desc: '查看 / 启用禁用' },
-  { path: '/profiles',  title: '资料审核',  icon: Document,    tone: 'warning', desc: '待审核资料处理' },
-  { path: '/matches',   title: '牵线记录',  icon: Connection,  tone: 'success', desc: '历史撮合查询' },
-  { path: '/audit',     title: '操作日志',  icon: Tickets,     tone: 'neutral', desc: '后台操作追溯' },
+  {
+    path: '/users',
+    title: '父母账号',
+    icon: User,
+    tone: 'info',
+    desc: '查看 / 启用禁用',
+  },
+  {
+    path: '/profiles',
+    title: '资料审核',
+    icon: Document,
+    tone: 'warning',
+    desc: '待审核资料处理',
+  },
+  {
+    path: '/matches',
+    title: '牵线记录',
+    icon: Connection,
+    tone: 'success',
+    desc: '历史撮合查询',
+  },
+  {
+    path: '/audit',
+    title: '操作日志',
+    icon: Tickets,
+    tone: 'neutral',
+    desc: '后台操作追溯',
+  },
 ];
 
 void Plus;
@@ -203,7 +316,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard { display: flex; flex-direction: column; gap: 16px; }
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
 /* 顶部欢迎条 */
 .hero {
@@ -215,16 +332,42 @@ onMounted(() => {
   border-radius: 6px;
   color: #ffffff;
 }
-.hero-title { font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
-.hero-sub { font-size: 13px; color: rgba(255, 255, 255, 0.78); margin-top: 8px; letter-spacing: 0.2px; }
-.hero-actions { display: flex; gap: 10px; }
-:deep(.hero-actions .el-button) { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); color: #fff; }
-:deep(.hero-actions .el-button--primary) { background: #ffffff; color: var(--color-primary); border-color: #ffffff; }
-:deep(.hero-actions .el-button:hover) { transform: translateY(-1px); }
+.hero-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.hero-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+  margin-top: 8px;
+  letter-spacing: 0.2px;
+}
+.hero-actions {
+  display: flex;
+  gap: 10px;
+}
+:deep(.hero-actions .el-button) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+:deep(.hero-actions .el-button--primary) {
+  background: #ffffff;
+  color: var(--color-primary);
+  border-color: #ffffff;
+}
+:deep(.hero-actions .el-button:hover) {
+  transform: translateY(-1px);
+}
 
 /* KPI 卡片 */
-.kpi-row { margin: 0 !important; }
-.kpi-row .el-col { margin-bottom: 12px; }
+.kpi-row {
+  margin: 0 !important;
+}
+.kpi-row .el-col {
+  margin-bottom: 12px;
+}
 .kpi-card {
   position: relative;
   background: #ffffff;
@@ -236,28 +379,48 @@ onMounted(() => {
   gap: 14px;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
-.kpi-card.tone-primary { background: #ffffff; border-color: var(--color-border); }
-.kpi-card.tone-success { background: var(--color-success); border-color: var(--color-success); }
-.kpi-card.tone-warning { background: var(--color-warning); border-color: var(--color-warning); }
-.kpi-card.tone-info    { background: var(--color-info);    border-color: var(--color-info); }
+.kpi-card.tone-primary {
+  background: #ffffff;
+  border-color: var(--color-border);
+}
+.kpi-card.tone-success {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+.kpi-card.tone-warning {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+}
+.kpi-card.tone-info {
+  background: var(--color-info);
+  border-color: var(--color-info);
+}
 
 /* 深色背景卡片：前景统一为白色，并通过透明度做层次 */
 .kpi-card.tone-success .kpi-label,
 .kpi-card.tone-warning .kpi-label,
-.kpi-card.tone-info    .kpi-label { color: rgba(255, 255, 255, 0.85); }
+.kpi-card.tone-info .kpi-label {
+  color: rgba(255, 255, 255, 0.85);
+}
 .kpi-card.tone-success .kpi-value,
 .kpi-card.tone-warning .kpi-value,
-.kpi-card.tone-info    .kpi-value { color: #ffffff; }
+.kpi-card.tone-info .kpi-value {
+  color: #ffffff;
+}
 .kpi-card.tone-success .kpi-sub,
 .kpi-card.tone-warning .kpi-sub,
-.kpi-card.tone-info    .kpi-sub   { color: rgba(255, 255, 255, 0.72); }
+.kpi-card.tone-info .kpi-sub {
+  color: rgba(255, 255, 255, 0.72);
+}
 
 /* 深色背景上的图标：半透明白底 + 白色图标 */
 .kpi-card.tone-success .kpi-icon,
 .kpi-card.tone-warning .kpi-icon,
-.kpi-card.tone-info    .kpi-icon {
+.kpi-card.tone-info .kpi-icon {
   background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
@@ -265,9 +428,14 @@ onMounted(() => {
 /* 深色背景上的 3px 侧边条：换成半透明白，避免被主色吞掉 */
 .kpi-card.tone-success .kpi-bar,
 .kpi-card.tone-warning .kpi-bar,
-.kpi-card.tone-info    .kpi-bar { background: rgba(255, 255, 255, 0.45); }
+.kpi-card.tone-info .kpi-bar {
+  background: rgba(255, 255, 255, 0.45);
+}
 
-.kpi-card:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
+.kpi-card:hover {
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
 .kpi-icon {
   width: 44px;
   height: 44px;
@@ -278,33 +446,92 @@ onMounted(() => {
   font-size: 20px;
   flex-shrink: 0;
 }
-.kpi-body { flex: 1; min-width: 0; }
-.kpi-label { color: var(--color-text-secondary); font-size: 13px; letter-spacing: 0.2px; }
-.kpi-value { font-size: 26px; font-weight: 600; color: var(--color-text-primary); margin: 6px 0 4px; letter-spacing: 0.3px; line-height: 1.2; }
-.kpi-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.kpi-body {
+  flex: 1;
+  min-width: 0;
+}
+.kpi-label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 6px 0 4px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.kpi-sub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
 .kpi-bar {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 3px;
 }
-.bar-primary { background: var(--color-primary); }
-.bar-info    { background: #4a5b73; }
-.bar-success { background: var(--color-success); }
-.bar-warning { background: var(--color-warning); }
-.bar-danger  { background: var(--color-danger); }
+.bar-primary {
+  background: var(--color-primary);
+}
+.bar-info {
+  background: #4a5b73;
+}
+.bar-success {
+  background: var(--color-success);
+}
+.bar-warning {
+  background: var(--color-warning);
+}
+.bar-danger {
+  background: var(--color-danger);
+}
 
-.tone-primary .kpi-icon { background: rgba(31, 58, 95, 0.10);   color: var(--color-primary); }
-.tone-info    .kpi-icon { background: rgba(74, 91, 115, 0.12);  color: #4a5b73; }
-.tone-success .kpi-icon { background: rgba(47, 125, 79, 0.12);  color: var(--color-success); }
-.tone-warning .kpi-icon { background: rgba(176, 125, 47, 0.12); color: var(--color-warning); }
-.tone-danger  .kpi-icon { background: rgba(179, 74, 63, 0.12);  color: var(--color-danger); }
+.tone-primary .kpi-icon {
+  background: rgba(31, 58, 95, 0.1);
+  color: var(--color-primary);
+}
+.tone-info .kpi-icon {
+  background: rgba(74, 91, 115, 0.12);
+  color: #4a5b73;
+}
+.tone-success .kpi-icon {
+  background: rgba(47, 125, 79, 0.12);
+  color: var(--color-success);
+}
+.tone-warning .kpi-icon {
+  background: rgba(176, 125, 47, 0.12);
+  color: var(--color-warning);
+}
+.tone-danger .kpi-icon {
+  background: rgba(179, 74, 63, 0.12);
+  color: var(--color-danger);
+}
 
 /* 中段面板 */
-.row-mid { margin: 0 !important; }
-.row-mid .el-col { margin-bottom: 12px; }
-.panel { border-radius: 6px; }
-.panel-header { display: flex; align-items: center; justify-content: space-between; }
-.panel-title { font-weight: 600; font-size: 15px; letter-spacing: 0.3px; }
+.row-mid {
+  margin: 0 !important;
+}
+.row-mid .el-col {
+  margin-bottom: 12px;
+}
+.panel {
+  border-radius: 6px;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
 
 /* 指标网格 */
 .metric-grid {
@@ -318,28 +545,63 @@ onMounted(() => {
   border: 1px solid var(--color-border-light);
   border-radius: 4px;
 }
-.metric-label { font-size: 13px; color: var(--color-text-secondary); letter-spacing: 0.2px; }
-.metric-value { font-size: 22px; font-weight: 600; color: var(--color-text-primary); margin: 8px 0 12px; letter-spacing: 0.3px; }
+.metric-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.2px;
+}
+.metric-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 8px 0 12px;
+  letter-spacing: 0.3px;
+}
 .metric-bar {
   height: 4px;
   background: #eef1f5;
   border-radius: 2px;
   overflow: hidden;
 }
-.metric-bar span { display: block; height: 100%; background: var(--color-primary); border-radius: 2px; }
-.metric-bar.match span { background: var(--color-success); }
-.metric-bar.warn  span { background: var(--color-warning); }
+.metric-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.metric-bar.match span {
+  background: var(--color-success);
+}
+.metric-bar.warn span {
+  background: var(--color-warning);
+}
 
 /* 系统健康 */
-.health-panel { min-height: 100%; }
-.health-list { display: flex; flex-direction: column; gap: 14px; }
+.health-panel {
+  min-height: 100%;
+}
+.health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .health-item {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.health-name { width: 80px; font-size: 13px; color: var(--color-text-regular); letter-spacing: 0.2px; }
-.health-meta { margin-left: auto; font-size: 12px; color: var(--color-text-secondary); letter-spacing: 0.2px; }
+.health-name {
+  width: 80px;
+  font-size: 13px;
+  color: var(--color-text-regular);
+  letter-spacing: 0.2px;
+}
+.health-meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.2px;
+}
 .dot {
   width: 8px;
   height: 8px;
@@ -347,14 +609,26 @@ onMounted(() => {
   background: #cbd5e1;
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
 }
-.tone-success { background: var(--color-success); }
-.tone-info    { background: #4a5b73; }
-.tone-warning { background: var(--color-warning); }
-.tone-danger  { background: var(--color-danger); }
-.tone-neutral { background: #cbd5e1; }
+.tone-success {
+  background: var(--color-success);
+}
+.tone-info {
+  background: #4a5b73;
+}
+.tone-warning {
+  background: var(--color-warning);
+}
+.tone-danger {
+  background: var(--color-danger);
+}
+.tone-neutral {
+  background: #cbd5e1;
+}
 
 /* 快捷入口 */
-.shortcuts { margin-bottom: 8px; }
+.shortcuts {
+  margin-bottom: 8px;
+}
 .shortcut-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -384,11 +658,32 @@ onMounted(() => {
   font-size: 18px;
   margin-bottom: 10px;
 }
-.shortcut-name { font-weight: 600; font-size: 14px; letter-spacing: 0.2px; }
-.shortcut-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; letter-spacing: 0.1px; }
+.shortcut-name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+.shortcut-desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  letter-spacing: 0.1px;
+}
 
-.shortcut.tone-info    .shortcut-icon { background: rgba(74, 91, 115, 0.12);  color: #4a5b73; }
-.shortcut.tone-warning .shortcut-icon { background: rgba(176, 125, 47, 0.12); color: var(--color-warning); }
-.shortcut.tone-success .shortcut-icon { background: rgba(47, 125, 79, 0.12);  color: var(--color-success); }
-.shortcut.tone-neutral .shortcut-icon { background: rgba(148, 163, 184, 0.18); color: #64748b; }
+.shortcut.tone-info .shortcut-icon {
+  background: rgba(74, 91, 115, 0.12);
+  color: #4a5b73;
+}
+.shortcut.tone-warning .shortcut-icon {
+  background: rgba(176, 125, 47, 0.12);
+  color: var(--color-warning);
+}
+.shortcut.tone-success .shortcut-icon {
+  background: rgba(47, 125, 79, 0.12);
+  color: var(--color-success);
+}
+.shortcut.tone-neutral .shortcut-icon {
+  background: rgba(148, 163, 184, 0.18);
+  color: #64748b;
+}
 </style>

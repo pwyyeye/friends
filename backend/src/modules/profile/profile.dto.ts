@@ -2,112 +2,131 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
-  ArrayMinSize,
+  ArrayUnique,
+  Equals,
   IsArray,
+  IsBoolean,
+  IsIn,
   IsInt,
   IsObject,
   IsOptional,
   IsString,
+  Matches,
+  Max,
   MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
+import { PROFILE_OPTIONS } from './profile.options';
 
-export class RequirementDto {
-  @ApiProperty({ example: 2, description: '1男 2女 0不限' })
-  @IsInt()
-  targetGender!: number;
-
-  @ApiProperty({ required: false, example: 25 })
+export class PreferenceDto {
+  @IsOptional() @IsInt() @Min(1900) @Max(2100) birthYearMin?: number | null;
+  @IsOptional() @IsInt() @Min(1900) @Max(2100) birthYearMax?: number | null;
+  @IsOptional() @IsInt() @Min(100) @Max(230) heightMin?: number | null;
+  @IsOptional() @IsInt() @Min(100) @Max(230) heightMax?: number | null;
   @IsOptional()
-  @IsInt()
-  targetAgeMin?: number;
-
-  @ApiProperty({ required: false, example: 32 })
+  @IsIn(PROFILE_OPTIONS.education.map((x) => x.value))
+  educationMin?: string | null;
+  @IsOptional() @IsInt() @Min(1) cityId?: number | null;
   @IsOptional()
-  @IsInt()
-  targetAgeMax?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsInt()
-  targetCityId?: number;
-
-  @ApiProperty({ required: false, description: '自我介绍' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(1000)
-  selfDesc?: string;
-}
-
-export class SubmitProfileDto {
-  @ApiProperty({ example: '小红' })
-  @IsString()
-  @MaxLength(50)
-  nickname!: string;
-
-  @ApiProperty({ example: 2, description: '1男 2女' })
-  @IsInt()
-  gender!: number;
-
-  @ApiProperty({ example: 26 })
-  @IsInt()
-  @Min(18)
-  age!: number;
-
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  cityId!: number;
-
-  @ApiProperty({ example: 165 })
-  @IsOptional()
-  @IsInt()
-  height?: number;
-
-  @ApiProperty({ example: 5, required: false })
-  @IsOptional()
-  @IsInt()
-  occupationId?: number;
-
-  @ApiProperty({ required: false, description: '字典无对应时自填' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  occupationCustom?: string;
-
-  @ApiProperty({ description: '头像 OSS key（必填）' })
-  @IsString()
-  @MaxLength(255)
-  avatarOssKey!: string;
-
-  @ApiProperty({
-    example: ['lifestyle/1/202607/abc.jpg'],
-    description: '生活照 OSS key 列表（1-9 张）',
-  })
   @IsArray()
-  @ArrayMinSize(1)
+  @ArrayUnique()
+  @ArrayMaxSize(2)
+  @IsIn(PROFILE_OPTIONS.expectations, { each: true })
+  tags?: string[];
+}
+export class ProfileFieldsDto {
+  @IsOptional() @IsIn(['father', 'mother']) relationship?: string | null;
+  @IsOptional() @IsString() @MaxLength(50) nickname?: string;
+  @IsOptional() @IsInt() @IsIn([1, 2]) gender?: number | null;
+  @ApiProperty({ example: '1998-06-15', required: false })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  birthDate?: string | null;
+  @IsOptional() @IsInt() @Min(100) @Max(230) height?: number | null;
+  @IsOptional() @IsInt() @Min(1) cityId?: number | null;
+  @IsOptional()
+  @IsIn(PROFILE_OPTIONS.education.map((x) => x.value))
+  education?: string | null;
+  @IsOptional() @IsIn(PROFILE_OPTIONS.income.map((x) => x.value)) income?:
+    | string
+    | null;
+  @IsOptional() @IsString() @MaxLength(100) occupation?: string;
+  @IsOptional()
+  @IsIn(PROFILE_OPTIONS.maritalStatus.map((x) => x.value))
+  maritalStatus?: string | null;
+  @IsOptional() @IsInt() @Min(1) hometownCityId?: number | null;
+  @IsOptional() @IsInt() @Min(1) workCityId?: number | null;
+  @IsOptional()
+  @IsIn(PROFILE_OPTIONS.carStatus.map((x) => x.value))
+  carStatus?: string | null;
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(2)
+  @IsIn(PROFILE_OPTIONS.traits, { each: true })
+  traits?: string[];
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(2)
+  @IsIn(PROFILE_OPTIONS.advantages, { each: true })
+  advantages?: string[];
+  @IsOptional() @IsString() @MaxLength(1000) introduction?: string;
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
   @ArrayMaxSize(9)
   @IsString({ each: true })
-  photoOssKeys!: string[];
-
-  @ApiProperty({ example: [1, 2, 3], description: '兴趣标签 id 列表' })
-  @IsArray()
-  interestTagIds!: number[];
-
-  @ApiProperty({ example: ['露营', '剧本杀'], description: '自定义兴趣词' })
-  @IsArray()
-  customInterests!: string[];
-
-  @ApiProperty({ type: RequirementDto })
+  @MaxLength(255, { each: true })
+  photoOssKeys?: string[];
+  @IsOptional()
   @IsObject()
   @ValidateNested()
-  @Type(() => RequirementDto)
-  requirement!: RequirementDto;
+  @Type(() => PreferenceDto)
+  preference?: PreferenceDto;
 }
-
+export class SaveDraftDto {
+  @IsOptional()
+  @IsIn([
+    'gender',
+    'education',
+    'income',
+    'city',
+    'relationship',
+    'birthDate',
+    'height',
+    'nickname',
+    'occupation',
+    'maritalStatus',
+    'hometown',
+    'workCity',
+    'car',
+    'traits',
+    'advantages',
+    'introduction',
+    'photos',
+    'targetHeight',
+    'targetBirth',
+    'targetEducation',
+    'targetCity',
+    'expectations',
+    'review',
+  ])
+  currentStep?: string;
+  @ApiProperty({ type: ProfileFieldsDto })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ProfileFieldsDto)
+  payload!: ProfileFieldsDto;
+  @IsInt() @Min(0) expectedRevision!: number;
+}
+export class SubmitProfileDto {
+  @IsInt() @Min(1) expectedRevision!: number;
+  @IsBoolean() @Equals(true) childConsent!: boolean;
+  @IsString() @Equals('2026-10-06') consentVersion!: string;
+}
 export class RejectProfileDto {
-  @ApiProperty({ example: '头像不规范，请重新上传' })
-  @IsString()
-  @MaxLength(500)
-  reason!: string;
+  @IsString() @Matches(/\S/) @MaxLength(500) reason!: string;
 }
